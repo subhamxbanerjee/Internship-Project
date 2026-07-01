@@ -1,7 +1,6 @@
 package com.centuryply.portal.security;
 
 import com.centuryply.portal.entity.Role;
-import com.centuryply.portal.service.UserService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
