@@ -184,6 +184,7 @@ export function formatFileType(fileType: string): string {
   if (type === 'xlsx' || type === 'xls') return 'Excel';
   if (type === 'docx' || type === 'doc') return 'Word';
   if (type === 'pptx' || type === 'ppt') return 'PowerPoint';
+  if (type === 'png' || type === 'jpg' || type === 'jpeg' || type === 'gif' || type === 'webp' || type === 'svg') return 'Images';
   return fileType.toUpperCase();
 }
 

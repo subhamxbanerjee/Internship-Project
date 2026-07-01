@@ -78,6 +78,7 @@ function DocumentsPage() {
               <option>Excel</option>
               <option>Word</option>
               <option>PowerPoint</option>
+              <option>Images</option>
             </select>
           </div>
         </div>
