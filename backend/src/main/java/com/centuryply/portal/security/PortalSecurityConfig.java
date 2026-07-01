@@ -4,6 +4,7 @@ import com.centuryply.portal.entity.Role;
 import com.centuryply.portal.service.UserService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -50,6 +51,7 @@ public class PortalSecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/login", "/api/auth/register").permitAll()
                 .requestMatchers("/api/auth/**").authenticated()
+                .requestMatchers(HttpMethod.POST, "/api/documents/upload").hasAnyAuthority(Role.SUPER_ADMIN.name(), Role.ADMIN.name())
                 .requestMatchers("/api/admin/**").hasAnyAuthority(Role.SUPER_ADMIN.name(), Role.ADMIN.name())
                 .requestMatchers("/api/users/**").hasAuthority(Role.SUPER_ADMIN.name())
                 .requestMatchers("/api/documents/**").authenticated()

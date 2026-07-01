@@ -19,7 +19,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/documents")
@@ -47,10 +46,10 @@ public class DocumentController {
     public ResponseEntity<DocumentSummary> documentSummary() {
         DocumentSummary summary = new DocumentSummary();
         summary.setTotal(documentService.countDocuments());
-        summary.setPdfCount(documentService.countByType("pdf"));
-        summary.setExcelCount(documentService.countByType("xlsx"));
-        summary.setWordCount(documentService.countByType("docx"));
-        summary.setPowerPointCount(documentService.countByType("pptx"));
+        summary.setPdfCount(documentService.countByTypes("pdf"));
+        summary.setExcelCount(documentService.countByTypes("xlsx", "xls"));
+        summary.setWordCount(documentService.countByTypes("docx", "doc"));
+        summary.setPowerPointCount(documentService.countByTypes("pptx", "ppt"));
         return ResponseEntity.ok(summary);
     }
 
@@ -67,11 +66,18 @@ public class DocumentController {
     }
 
     @GetMapping("/download/{id}")
-    public ResponseEntity<Resource> downloadDocument(@PathVariable Long id) throws MalformedURLException {
+    public ResponseEntity<Resource> downloadDocument(@PathVariable("id") Long id) throws MalformedURLException {
         Document document = documentService.findById(id).orElseThrow();
 
         Path filePath = uploadDirectory.resolve(document.getFilename()).normalize();
+        if (!Files.exists(filePath)) {
+            return ResponseEntity.notFound().build();
+        }
+
         Resource resource = new UrlResource(filePath.toUri());
+        if (!resource.exists() || !resource.isReadable()) {
+            return ResponseEntity.notFound().build();
+        }
         String contentType = "application/octet-stream";
 
         return ResponseEntity.ok()

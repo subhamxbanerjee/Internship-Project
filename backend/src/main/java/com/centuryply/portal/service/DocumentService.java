@@ -32,6 +32,14 @@ public class DocumentService {
         return documentRepository.countByFileType(fileType);
     }
 
+    public long countByTypes(String... fileTypes) {
+        long total = 0;
+        for (String fileType : fileTypes) {
+            total += countByType(fileType);
+        }
+        return total;
+    }
+
     public Document save(Document document) {
         document.setUploadedAt(LocalDateTime.now());
         return documentRepository.save(document);

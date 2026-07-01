@@ -1,8 +1,33 @@
-import axios, { AxiosInstance } from 'axios';
+import axios, { AxiosInstance, isAxiosError } from 'axios';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api';
+const STORAGE_KEY = 'centuryply_auth';
 
-let apiClient: AxiosInstance = axios.create({ baseURL: API_BASE });
+let apiClient: AxiosInstance = createApiClient();
+let onUnauthorized: (() => void) | null = null;
+
+function createApiClient(username?: string, password?: string): AxiosInstance {
+  const client = axios.create({
+    baseURL: API_BASE,
+    ...(username && password ? { auth: { username, password } } : {}),
+  });
+
+  client.interceptors.response.use(
+    (response) => response,
+    (error) => {
+      if (error.response?.status === 401 && onUnauthorized) {
+        onUnauthorized();
+      }
+      return Promise.reject(error);
+    }
+  );
+
+  return client;
+}
+
+export function setUnauthorizedHandler(handler: () => void) {
+  onUnauthorized = handler;
+}
 
 export interface AuthUser {
   username: string;
@@ -39,14 +64,21 @@ export interface PortalUser {
 }
 
 export function setAuthCredentials(username: string, password: string) {
-  apiClient = axios.create({
-    baseURL: API_BASE,
-    auth: { username, password },
-  });
+  apiClient = createApiClient(username, password);
 }
 
 export function clearAuthCredentials() {
-  apiClient = axios.create({ baseURL: API_BASE });
+  apiClient = createApiClient();
+}
+
+export function updateStoredPassword(newPassword: string) {
+  const stored = sessionStorage.getItem(STORAGE_KEY);
+  if (!stored) return;
+
+  const credentials = JSON.parse(stored) as { username: string; password: string };
+  credentials.password = newPassword;
+  sessionStorage.setItem(STORAGE_KEY, JSON.stringify(credentials));
+  setAuthCredentials(credentials.username, newPassword);
 }
 
 export async function login(username: string, password: string): Promise<void> {
@@ -61,6 +93,7 @@ export async function fetchCurrentUser(): Promise<AuthUser> {
 
 export async function changePassword(currentPassword: string, newPassword: string) {
   await apiClient.post('/auth/change-password', { currentPassword, newPassword });
+  updateStoredPassword(newPassword);
 }
 
 export async function fetchDocumentSummary(): Promise<DocumentSummary> {
@@ -90,6 +123,9 @@ export async function uploadDocument(file: File, uploadedBy: string): Promise<Do
 
 export async function downloadDocument(id: number, title: string) {
   const response = await apiClient.get(`/documents/download/${id}`, { responseType: 'blob' });
+  if (response.data.size === 0) {
+    throw new Error('File not available for download.');
+  }
   const url = window.URL.createObjectURL(new Blob([response.data]));
   const link = document.createElement('a');
   link.href = url;
@@ -130,6 +166,16 @@ export async function deleteUser(id: number) {
 
 export async function resetUserPassword(id: number, password: string) {
   await apiClient.post(`/users/${id}/reset-password`, { password });
+}
+
+export function getApiErrorMessage(error: unknown, fallback: string): string {
+  if (isAxiosError(error)) {
+    const message = error.response?.data?.message;
+    if (typeof message === 'string') return message;
+    if (error.response?.status === 401) return 'Session expired. Please login again.';
+    if (error.response?.status === 403) return 'You do not have permission for this action.';
+  }
+  return fallback;
 }
 
 export function formatFileType(fileType: string): string {

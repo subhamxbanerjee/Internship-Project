@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { getApiErrorMessage } from '../services/api';
 
 function LoginPage() {
   const { login } = useAuth();
@@ -17,8 +18,8 @@ function LoginPage() {
     try {
       await login(username, password);
       navigate('/');
-    } catch {
-      setError('Login failed. Please check credentials.');
+    } catch (err) {
+      setError(getApiErrorMessage(err, 'Login failed. Please check credentials.'));
     } finally {
       setSubmitting(false);
     }

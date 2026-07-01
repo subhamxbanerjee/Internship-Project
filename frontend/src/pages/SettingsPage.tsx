@@ -1,17 +1,13 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { changePassword } from '../services/api';
+import { changePassword, getApiErrorMessage } from '../services/api';
 
 function SettingsPage() {
-  const { user, refreshUser } = useAuth();
+  const { user } = useAuth();
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [passwordMessage, setPasswordMessage] = useState('');
   const [passwordError, setPasswordError] = useState('');
-
-  useEffect(() => {
-    refreshUser();
-  }, [refreshUser]);
 
   const handlePasswordChange = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -22,8 +18,8 @@ function SettingsPage() {
       setPasswordMessage('Password updated successfully.');
       setCurrentPassword('');
       setNewPassword('');
-    } catch {
-      setPasswordError('Could not update password. Check your current password.');
+    } catch (error) {
+      setPasswordError(getApiErrorMessage(error, 'Could not update password. Check your current password.'));
     }
   };
 

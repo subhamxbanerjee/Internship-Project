@@ -5,6 +5,7 @@ import {
   fetchDocuments,
   formatFileType,
   formatRelativeTime,
+  getApiErrorMessage,
 } from '../services/api';
 
 function DocumentsPage() {
@@ -13,10 +14,15 @@ function DocumentsPage() {
   const [filter, setFilter] = useState('All');
   const [loading, setLoading] = useState(true);
   const [downloadingId, setDownloadingId] = useState<number | null>(null);
+  const [error, setError] = useState('');
+  const [downloadError, setDownloadError] = useState('');
 
   useEffect(() => {
     fetchDocuments()
       .then(setDocuments)
+      .catch(() => {
+        setError('Could not load documents. Please refresh the page.');
+      })
       .finally(() => setLoading(false));
   }, []);
 
@@ -31,8 +37,11 @@ function DocumentsPage() {
 
   const handleDownload = async (doc: DocumentItem) => {
     setDownloadingId(doc.id);
+    setDownloadError('');
     try {
       await downloadDocument(doc.id, doc.title);
+    } catch (err) {
+      setDownloadError(getApiErrorMessage(err, `Could not download "${doc.title}".`));
     } finally {
       setDownloadingId(null);
     }
@@ -44,6 +53,8 @@ function DocumentsPage() {
 
   return (
     <div className="space-y-6">
+      {error && <div className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
+      {downloadError && <div className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{downloadError}</div>}
       <div className="rounded-3xl bg-white p-6 shadow-sm shadow-slate-200">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>

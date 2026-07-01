@@ -24,13 +24,17 @@ public class UserController {
     }
 
     @PostMapping
-    public ResponseEntity<User> addUser(@RequestBody CreateUserRequest request) {
-        User user = new User(request.getUsername(), request.getPassword(), request.getFullName(), request.getEmail(), request.getRole());
-        return ResponseEntity.ok(userService.save(user));
+    public ResponseEntity<?> addUser(@RequestBody CreateUserRequest request) {
+        try {
+            User user = new User(request.getUsername(), request.getPassword(), request.getFullName(), request.getEmail(), request.getRole());
+            return ResponseEntity.ok(userService.save(user));
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.badRequest().body(Map.of("message", ex.getMessage()));
+        }
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody UpdateUserRequest request) {
+    public ResponseEntity<User> updateUser(@PathVariable("id") Long id, @RequestBody UpdateUserRequest request) {
         User user = userService.findById(id).orElseThrow();
         user.setFullName(request.getFullName());
         user.setEmail(request.getEmail());
@@ -40,13 +44,13 @@ public class UserController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Map<String, String>> deleteUser(@PathVariable Long id) {
+    public ResponseEntity<Map<String, String>> deleteUser(@PathVariable("id") Long id) {
         userService.delete(id);
         return ResponseEntity.ok(Map.of("message", "User deleted"));
     }
 
     @PostMapping("/{id}/reset-password")
-    public ResponseEntity<Map<String, String>> resetPassword(@PathVariable Long id, @RequestBody ResetPasswordRequest request) {
+    public ResponseEntity<Map<String, String>> resetPassword(@PathVariable("id") Long id, @RequestBody ResetPasswordRequest request) {
         userService.resetPassword(id, request.getPassword());
         return ResponseEntity.ok(Map.of("message", "Password reset"));
     }

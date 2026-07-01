@@ -5,6 +5,7 @@ import {
   deleteUser,
   fetchUsers,
   formatRole,
+  getApiErrorMessage,
   resetUserPassword,
   updateUser,
 } from '../services/api';
@@ -26,8 +27,12 @@ function UsersPage() {
   const [error, setError] = useState('');
 
   const loadUsers = () => {
+    setLoading(true);
     fetchUsers()
       .then(setUsers)
+      .catch(() => {
+        setError('Could not load users. Please refresh the page.');
+      })
       .finally(() => setLoading(false));
   };
 
@@ -43,8 +48,8 @@ function UsersPage() {
       setForm(emptyForm);
       setShowForm(false);
       loadUsers();
-    } catch {
-      setError('Failed to create user.');
+    } catch (err) {
+      setError(getApiErrorMessage(err, 'Failed to create user.'));
     }
   };
 
@@ -61,22 +66,32 @@ function UsersPage() {
       });
       setEditingUser(null);
       loadUsers();
-    } catch {
-      setError('Failed to update user.');
+    } catch (err) {
+      setError(getApiErrorMessage(err, 'Failed to update user.'));
     }
   };
 
   const handleDelete = async (id: number) => {
     if (!window.confirm('Delete this user?')) return;
-    await deleteUser(id);
-    loadUsers();
+    setError('');
+    try {
+      await deleteUser(id);
+      loadUsers();
+    } catch (err) {
+      setError(getApiErrorMessage(err, 'Failed to delete user.'));
+    }
   };
 
   const handleResetPassword = async (id: number) => {
     const password = window.prompt('Enter new password:');
     if (!password) return;
-    await resetUserPassword(id, password);
-    window.alert('Password reset successfully.');
+    setError('');
+    try {
+      await resetUserPassword(id, password);
+      window.alert('Password reset successfully.');
+    } catch (err) {
+      setError(getApiErrorMessage(err, 'Failed to reset password.'));
+    }
   };
 
   if (loading) {

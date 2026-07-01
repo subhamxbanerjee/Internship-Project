@@ -20,12 +20,16 @@ function DashboardPage() {
   });
   const [recentDocs, setRecentDocs] = useState<DocumentItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     Promise.all([fetchDocumentSummary(), fetchRecentDocuments()])
       .then(([summaryData, recentData]) => {
         setSummary(summaryData);
         setRecentDocs(recentData);
+      })
+      .catch(() => {
+        setError('Could not load dashboard data. Please refresh the page.');
       })
       .finally(() => setLoading(false));
   }, []);
@@ -36,6 +40,7 @@ function DashboardPage() {
 
   return (
     <div className="space-y-6">
+      {error && <div className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
       <div className="rounded-3xl bg-white p-6 shadow-sm shadow-slate-200">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>

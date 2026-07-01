@@ -1,10 +1,11 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useState, ReactNode } from 'react';
 import {
   AuthUser,
   clearAuthCredentials,
   fetchCurrentUser,
   login as apiLogin,
   setAuthCredentials,
+  setUnauthorizedHandler,
 } from '../services/api';
 
 interface AuthContextValue {
@@ -13,7 +14,6 @@ interface AuthContextValue {
   role: string;
   login: (username: string, password: string) => Promise<void>;
   logout: () => void;
-  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -28,6 +28,20 @@ interface StoredAuth {
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const logout = useCallback(() => {
+    sessionStorage.removeItem(STORAGE_KEY);
+    clearAuthCredentials();
+    setUser(null);
+  }, []);
+
+  useEffect(() => {
+    setUnauthorizedHandler(() => {
+      sessionStorage.removeItem(STORAGE_KEY);
+      clearAuthCredentials();
+      setUser(null);
+    });
+  }, []);
 
   useEffect(() => {
     const stored = sessionStorage.getItem(STORAGE_KEY);
@@ -47,23 +61,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .finally(() => setLoading(false));
   }, []);
 
-  const login = async (username: string, password: string) => {
+  const login = useCallback(async (username: string, password: string) => {
     await apiLogin(username, password);
     const authUser = await fetchCurrentUser();
     sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ username, password }));
     setUser(authUser);
-  };
-
-  const logout = () => {
-    sessionStorage.removeItem(STORAGE_KEY);
-    clearAuthCredentials();
-    setUser(null);
-  };
-
-  const refreshUser = async () => {
-    const authUser = await fetchCurrentUser();
-    setUser(authUser);
-  };
+  }, []);
 
   if (loading) {
     return (
@@ -81,7 +84,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         role: user?.role || 'EMPLOYEE',
         login,
         logout,
-        refreshUser,
       }}
     >
       {children}
