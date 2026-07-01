@@ -1,5 +1,6 @@
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import logo from '../assets/logo-new.png';
 
 function Layout() {
   const { role, user, logout } = useAuth();
@@ -19,9 +20,8 @@ function Layout() {
         <aside className="w-full border-r border-slate-200 bg-white p-5 md:w-64">
           <div className="mb-8">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-600 text-sm font-bold text-white">C</div>
+              <img src={logo} alt="CenturyPly" className="h-8 w-auto max-w-[120px] object-contain" />
               <div>
-                <div className="font-semibold text-slate-900">CenturyPly</div>
                 <div className="text-sm text-slate-500">Internal Portal</div>
               </div>
             </div>
