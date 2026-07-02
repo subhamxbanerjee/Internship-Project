@@ -18,12 +18,13 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import java.util.Arrays;
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
 public class PortalSecurityConfig {
+
     private final UserDetailsService userDetailsService;
 
     public PortalSecurityConfig(UserDetailsService userDetailsService) {
@@ -32,39 +33,87 @@ public class PortalSecurityConfig {
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
+
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173"));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("*"));
+
+        // Allow both Vite ports
+        configuration.setAllowedOriginPatterns(List.of(
+                "http://localhost:5173",
+                "http://localhost:5174"
+        ));
+
+        configuration.setAllowedMethods(List.of(
+                "GET",
+                "POST",
+                "PUT",
+                "DELETE",
+                "OPTIONS"
+        ));
+
+        configuration.setAllowedHeaders(List.of("*"));
+
         configuration.setAllowCredentials(true);
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+
+        UrlBasedCorsConfigurationSource source =
+                new UrlBasedCorsConfigurationSource();
+
         source.registerCorsConfiguration("/**", configuration);
+
         return source;
     }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+
         http
-            .csrf(csrf -> csrf.disable())
-            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/login", "/api/auth/register").permitAll()
-                .requestMatchers("/api/auth/**").authenticated()
-                .requestMatchers(HttpMethod.POST, "/api/documents/upload").hasAnyAuthority(Role.SUPER_ADMIN.name(), Role.ADMIN.name())
-                .requestMatchers("/api/admin/**").hasAnyAuthority(Role.SUPER_ADMIN.name(), Role.ADMIN.name())
-                .requestMatchers("/api/users/**").hasAuthority(Role.SUPER_ADMIN.name())
-                .requestMatchers("/api/documents/**").authenticated()
-                .anyRequest().permitAll()
-            )
-            .httpBasic();
+                .csrf(csrf -> csrf.disable())
+
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+
+                .authorizeHttpRequests(auth -> auth
+
+                        // Allow browser preflight requests
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
+                        // Public APIs
+                        .requestMatchers("/api/auth/login", "/api/auth/register").permitAll()
+
+                        // Authenticated APIs
+                        .requestMatchers("/api/auth/**").authenticated()
+
+                        // Upload
+                        .requestMatchers(HttpMethod.POST, "/api/documents/upload")
+                        .hasAnyAuthority(Role.SUPER_ADMIN.name(), Role.ADMIN.name())
+
+                        // Admin APIs
+                        .requestMatchers("/api/admin/**")
+                        .hasAnyAuthority(Role.SUPER_ADMIN.name(), Role.ADMIN.name())
+
+                        // User Management
+                        .requestMatchers("/api/users/**")
+                        .hasAuthority(Role.SUPER_ADMIN.name())
+
+                        // Documents
+                        .requestMatchers("/api/documents/**")
+                        .authenticated()
+
+                        .anyRequest().permitAll()
+                )
+
+                .httpBasic(httpBasic -> {});
+
         return http.build();
     }
 
     @Bean
     public AuthenticationManager authenticationManager() {
-        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+
+        DaoAuthenticationProvider provider =
+                new DaoAuthenticationProvider();
+
         provider.setUserDetailsService(userDetailsService);
         provider.setPasswordEncoder(passwordEncoder());
+
         return new ProviderManager(provider);
     }
 

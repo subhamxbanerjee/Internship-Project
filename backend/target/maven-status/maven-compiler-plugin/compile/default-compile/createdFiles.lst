@@ -14,6 +14,7 @@ com\centuryply\portal\controller\UserController$ResetPasswordRequest.class
 com\centuryply\portal\config\WebConfig.class
 com\centuryply\portal\controller\UserController.class
 com\centuryply\portal\controller\AuthController$LoginRequest.class
+com\centuryply\portal\controller\HomeController.class
 com\centuryply\portal\service\DocumentService.class
 com\centuryply\portal\controller\UserController$CreateUserRequest.class
 com\centuryply\portal\security\PortalSecurityConfig.class

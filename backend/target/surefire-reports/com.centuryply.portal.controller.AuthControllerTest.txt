@@ -1,4 +1,0 @@
--------------------------------------------------------------------------------
-Test set: com.centuryply.portal.controller.AuthControllerTest
--------------------------------------------------------------------------------
-Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 4.049 s -- in com.centuryply.portal.controller.AuthControllerTest

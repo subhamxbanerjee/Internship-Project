@@ -24,18 +24,58 @@ public class AuthController {
         this.userService = userService;
     }
 
-    @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
+  @PostMapping("/login")
+public ResponseEntity<?> login(@RequestBody LoginRequest request) {
+
+    try {
+        System.out.println("======================================");
+        System.out.println("LOGIN ATTEMPT");
+        System.out.println("Username: " + request.getUsername());
+        System.out.println("======================================");
+
         Authentication auth = authenticationManager.authenticate(
-            new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
+                new UsernamePasswordAuthenticationToken(
+                        request.getUsername(),
+                        request.getPassword()
+                )
         );
+
         SecurityContextHolder.getContext().setAuthentication(auth);
+
+        System.out.println("LOGIN SUCCESS");
+        System.out.println("Authenticated User: " + auth.getName());
+        System.out.println("Authorities: " + auth.getAuthorities());
 
         Map<String, Object> response = new HashMap<>();
         response.put("username", auth.getName());
-        response.put("role", auth.getAuthorities().stream().findFirst().map(Object::toString).orElse("EMPLOYEE"));
+        response.put("role", auth.getAuthorities()
+                .stream()
+                .findFirst()
+                .map(Object::toString)
+                .orElse("EMPLOYEE"));
+
         return ResponseEntity.ok(response);
+
+    } catch (Exception e) {
+
+        System.out.println("======================================");
+        System.out.println("LOGIN FAILED");
+        System.out.println("Username: " + request.getUsername());
+        System.out.println("Exception: " + e.getClass().getSimpleName());
+        System.out.println("Message: " + e.getMessage());
+        System.out.println("======================================");
+
+        e.printStackTrace();
+
+        return ResponseEntity.status(401).body(
+                Map.of(
+                        "message", "Invalid username or password",
+                        "exception", e.getClass().getSimpleName(),
+                        "details", e.getMessage()
+                )
+        );
     }
+}
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
