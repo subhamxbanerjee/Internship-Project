@@ -136,6 +136,14 @@ export async function downloadDocument(id: number, title: string) {
   window.URL.revokeObjectURL(url);
 }
 
+export async function fetchDocumentPreviewBlob(id: number, signal?: AbortSignal): Promise<Blob> {
+  const response = await apiClient.get(`/documents/preview/${id}`, {
+    responseType: 'blob',
+    signal,
+  });
+  return response.data;
+}
+
 export async function fetchUsers(): Promise<PortalUser[]> {
   const response = await apiClient.get('/users');
   return response.data;

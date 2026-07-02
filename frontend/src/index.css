@@ -46,3 +46,30 @@ textarea {
 .animate-scaleIn {
   animation: scaleIn 0.22s ease-out;
 }
+.sheet-preview table {
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+.sheet-preview td,
+.sheet-preview th {
+  border: 1px solid #e2e8f0;
+  padding: 6px 10px;
+  white-space: nowrap;
+}
+.sheet-preview tr:nth-child(even) {
+  background-color: #f8fafc;
+}
+
+.docx-preview img {
+  max-width: 100%;
+  height: auto;
+}
+.docx-preview table {
+  border-collapse: collapse;
+  width: 100%;
+}
+.docx-preview td,
+.docx-preview th {
+  border: 1px solid #e2e8f0;
+  padding: 6px 10px;
+}
