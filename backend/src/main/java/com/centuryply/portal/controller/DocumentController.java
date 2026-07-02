@@ -86,6 +86,34 @@ public class DocumentController {
             .body(resource);
     }
 
+    @GetMapping("/preview/{id}")
+    public ResponseEntity<Resource> previewDocument(@PathVariable Long id) throws IOException {
+        Document document = documentService.findById(id).orElseThrow();
+
+        Path filePath = uploadDirectory.resolve(document.getFilename()).normalize();
+
+        if (!Files.exists(filePath)) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Resource resource = new UrlResource(filePath.toUri());
+
+        if (!resource.exists() || !resource.isReadable()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        String contentType = Files.probeContentType(filePath);
+        if (contentType == null) {
+            contentType = "application/octet-stream";
+        }
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(contentType))
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        "inline; filename=\"" + document.getTitle() + "\"")
+                .body(resource);
+    }
+
     public static class DocumentSummary {
         private long total;
         private long pdfCount;

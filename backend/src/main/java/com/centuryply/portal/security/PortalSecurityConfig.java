@@ -100,7 +100,11 @@ public class PortalSecurityConfig {
                         .anyRequest().permitAll()
                 )
 
-                .httpBasic(httpBasic -> {});
+                .httpBasic(httpBasic -> {})
+
+                .headers(headers ->
+                        headers.frameOptions(frame -> frame.disable())
+                );
 
         return http.build();
     }

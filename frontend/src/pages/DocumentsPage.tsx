@@ -1,3 +1,4 @@
+import { Eye } from "lucide-react";
 import { useEffect, useMemo, useState } from 'react';
 import {
   DocumentItem,
@@ -7,6 +8,7 @@ import {
   formatRelativeTime,
   getApiErrorMessage,
 } from '../services/api';
+import PreviewModal from '../components/PreviewModal';
 
 function DocumentsPage() {
   const [documents, setDocuments] = useState<DocumentItem[]>([]);
@@ -16,6 +18,7 @@ function DocumentsPage() {
   const [downloadingId, setDownloadingId] = useState<number | null>(null);
   const [error, setError] = useState('');
   const [downloadError, setDownloadError] = useState('');
+  const [previewDoc, setPreviewDoc] = useState<DocumentItem | null>(null);
 
   useEffect(() => {
     fetchDocuments()
@@ -96,18 +99,33 @@ function DocumentsPage() {
                     {formatFileType(doc.fileType)} · {doc.uploadedBy} · {formatRelativeTime(doc.uploadedAt)}
                   </div>
                 </div>
-                <button
-                  onClick={() => handleDownload(doc)}
-                  disabled={downloadingId === doc.id}
-                  className="rounded-2xl bg-blue-600 px-4 py-2 text-sm text-white disabled:opacity-60"
-                >
-                  {downloadingId === doc.id ? 'Downloading...' : 'Download'}
-                </button>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => setPreviewDoc(doc)}
+                    className="flex items-center gap-2 rounded-2xl border border-blue-600 px-4 py-2 text-sm font-medium text-blue-600 transition hover:bg-blue-600 hover:text-white"
+                  >
+                    <Eye size={18} />
+                    Preview
+                  </button>
+
+                  <button
+                    onClick={() => handleDownload(doc)}
+                    disabled={downloadingId === doc.id}
+                    className="rounded-2xl bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700 disabled:opacity-60"
+                  >
+                    {downloadingId === doc.id ? 'Downloading...' : 'Download'}
+                  </button>
+                </div>
               </div>
             ))}
           </div>
         )}
       </div>
+
+      <PreviewModal
+        document={previewDoc}
+        onClose={() => setPreviewDoc(null)}
+      />
     </div>
   );
 }
