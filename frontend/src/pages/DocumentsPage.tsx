@@ -29,14 +29,18 @@ function DocumentsPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  const filteredDocuments = useMemo(() => {
-    return documents.filter((doc) => {
+ const filteredDocuments = useMemo(() => {
+  return documents
+    .filter((doc) => {
       const matchesSearch = doc.title.toLowerCase().includes(search.toLowerCase());
       const docType = formatFileType(doc.fileType);
       const matchesFilter = filter === 'All' || docType === filter;
       return matchesSearch && matchesFilter;
-    });
-  }, [documents, search, filter]);
+    })
+    .sort(
+      (a, b) => new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime()
+    );
+}, [documents, search, filter]);
 
   const handleDownload = async (doc: DocumentItem) => {
     setDownloadingId(doc.id);
@@ -64,26 +68,26 @@ function DocumentsPage() {
             <h1 className="text-2xl font-semibold text-slate-900">Documents</h1>
             <p className="mt-2 text-sm text-slate-500">Search, filter, and download uploaded company documents.</p>
           </div>
-          <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3">
-            <input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search documents..."
-              className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900"
-            />
-            <select
-              value={filter}
-              onChange={(e) => setFilter(e.target.value)}
-              className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900"
-            >
-              <option>All</option>
-              <option>PDF</option>
-              <option>Excel</option>
-              <option>Word</option>
-              <option>PowerPoint</option>
-              <option>Images</option>
-            </select>
-          </div>
+          <div className="grid gap-3 sm:grid-cols-3 md:grid-cols-4">
+  <input
+    value={search}
+    onChange={(e) => setSearch(e.target.value)}
+    placeholder="Search documents..."
+    className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 sm:col-span-2 md:col-span-3"
+  />
+  <select
+    value={filter}
+    onChange={(e) => setFilter(e.target.value)}
+    className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900"
+  >
+    <option>All</option>
+    <option>PDF</option>
+    <option>Excel</option>
+    <option>Word</option>
+    <option>PowerPoint</option>
+    <option>Images</option>
+  </select>
+</div>
         </div>
       </div>
       <div className="rounded-3xl bg-white p-6 shadow-sm shadow-slate-200">

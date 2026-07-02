@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { X } from "lucide-react";
+import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import mammoth from "mammoth";
 import * as XLSX from "xlsx";
 import {
@@ -7,6 +7,7 @@ import {
   formatFileType,
   fetchDocumentPreviewBlob,
 } from "../services/api";
+import { parsePptxSlides } from "../utils/pptxParser";
 
 interface PreviewModalProps {
   document: DocumentItem | null;
@@ -18,6 +19,7 @@ const API_BASE =
 
 const OFFICE_TYPES = ["docx"];
 const SHEET_TYPES = ["xlsx", "xls", "csv"];
+const PPT_TYPES = ["pptx"];
 
 export default function PreviewModal({
   document,
@@ -34,6 +36,10 @@ export default function PreviewModal({
   const [sheetNames, setSheetNames] = useState<string[]>([]);
   const [activeSheet, setActiveSheet] = useState<string>("");
 
+  // pptx
+  const [slides, setSlides] = useState<string[][]>([]);
+  const [activeSlide, setActiveSlide] = useState(0);
+
   const type = document?.fileType.toLowerCase() ?? "";
   const previewUrl = document
     ? `${API_BASE}/documents/preview/${document.id}`
@@ -43,6 +49,7 @@ export default function PreviewModal({
   const isPdf = type === "pdf";
   const isDocx = OFFICE_TYPES.includes(type);
   const isSheet = SHEET_TYPES.includes(type);
+  const isPpt = PPT_TYPES.includes(type);
 
   // Reset state whenever a new document opens
   useEffect(() => {
@@ -51,6 +58,8 @@ export default function PreviewModal({
     setWorkbook(null);
     setSheetNames([]);
     setActiveSheet("");
+    setSlides([]);
+    setActiveSlide(0);
 
     if (!document) return;
 
@@ -60,7 +69,7 @@ export default function PreviewModal({
       return;
     }
 
-    if (!isDocx && !isSheet) {
+    if (!isDocx && !isSheet && !isPpt) {
       setLoading(false);
       return;
     }
@@ -84,6 +93,10 @@ export default function PreviewModal({
           setWorkbook(wb);
           setSheetNames(wb.SheetNames);
           setActiveSheet(wb.SheetNames[0] ?? "");
+        } else if (isPpt) {
+          const parsedSlides = await parsePptxSlides(buffer);
+          setSlides(parsedSlides);
+          setActiveSlide(0);
         }
       } catch (err) {
         const name = (err as Error).name;
@@ -99,14 +112,22 @@ export default function PreviewModal({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [document]);
 
-  // Close using ESC key
+  // Close using ESC key, navigate slides with arrows
   useEffect(() => {
-    const handleEscape = (event: KeyboardEvent) => {
+    const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") onClose();
+      if (isPpt && slides.length > 0) {
+        if (event.key === "ArrowRight") {
+          setActiveSlide((i) => Math.min(i + 1, slides.length - 1));
+        }
+        if (event.key === "ArrowLeft") {
+          setActiveSlide((i) => Math.max(i - 1, 0));
+        }
+      }
     };
-    window.addEventListener("keydown", handleEscape);
-    return () => window.removeEventListener("keydown", handleEscape);
-  }, [onClose]);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [onClose, isPpt, slides.length]);
 
   if (!document) return null;
 
@@ -134,6 +155,11 @@ export default function PreviewModal({
             </h2>
             <p className="mt-1 text-sm text-slate-500">
               {formatFileType(document.fileType)}
+              {isPpt && slides.length > 0 && (
+                <span className="ml-2 text-slate-400">
+                  · Slide {activeSlide + 1} of {slides.length}
+                </span>
+              )}
             </p>
           </div>
           <button
@@ -210,6 +236,62 @@ export default function PreviewModal({
                 className="sheet-preview overflow-x-auto"
                 dangerouslySetInnerHTML={{ __html: activeSheetHtml }}
               />
+            </div>
+          ) : isPpt && slides.length > 0 ? (
+            <div className="flex h-full flex-col items-center justify-center gap-4">
+              <div className="flex aspect-video w-full max-w-3xl flex-col justify-center rounded-2xl bg-white p-12 shadow">
+                {slides[activeSlide]?.length > 0 ? (
+                  <>
+                    <h3 className="mb-4 text-2xl font-bold text-slate-900">
+                      {slides[activeSlide][0]}
+                    </h3>
+                    <ul className="space-y-2">
+                      {slides[activeSlide].slice(1).map((line, i) => (
+                        <li key={i} className="text-slate-700">
+                          {line}
+                        </li>
+                      ))}
+                    </ul>
+                  </>
+                ) : (
+                  <p className="text-center text-slate-400">
+                    (No text content on this slide)
+                  </p>
+                )}
+              </div>
+
+              {/* Slide navigation */}
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={() => setActiveSlide((i) => Math.max(i - 1, 0))}
+                  disabled={activeSlide === 0}
+                  className="rounded-full bg-white p-2 shadow transition hover:bg-slate-50 disabled:opacity-30"
+                >
+                  <ChevronLeft size={20} />
+                </button>
+
+                <div className="flex gap-1.5">
+                  {slides.map((_, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setActiveSlide(i)}
+                      className={`h-2 w-2 rounded-full transition ${
+                        i === activeSlide ? "bg-blue-600 w-6" : "bg-slate-300"
+                      }`}
+                    />
+                  ))}
+                </div>
+
+                <button
+                  onClick={() =>
+                    setActiveSlide((i) => Math.min(i + 1, slides.length - 1))
+                  }
+                  disabled={activeSlide === slides.length - 1}
+                  className="rounded-full bg-white p-2 shadow transition hover:bg-slate-50 disabled:opacity-30"
+                >
+                  <ChevronRight size={20} />
+                </button>
+              </div>
             </div>
           ) : !loading ? (
             <div className="flex h-full items-center justify-center">
