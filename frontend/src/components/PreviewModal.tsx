@@ -1,17 +1,20 @@
 import { useEffect, useState } from "react";
-import { X, ChevronLeft, ChevronRight } from "lucide-react";
+import { X, ChevronLeft, ChevronRight, Trash2 } from "lucide-react";
 import mammoth from "mammoth";
 import * as XLSX from "xlsx";
 import {
   DocumentItem,
   formatFileType,
   fetchDocumentPreviewBlob,
+  deleteDocument,
 } from "../services/api";
 import { parsePptxSlides } from "../utils/pptxParser";
+import { useAuth } from "../context/AuthContext";
 
 interface PreviewModalProps {
   document: DocumentItem | null;
   onClose: () => void;
+  onDeleted?: (id: number) => void;
 }
 
 const API_BASE =
@@ -24,7 +27,9 @@ const PPT_TYPES = ["pptx"];
 export default function PreviewModal({
   document,
   onClose,
+  onDeleted,
 }: PreviewModalProps) {
+  const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -40,6 +45,11 @@ export default function PreviewModal({
   const [slides, setSlides] = useState<string[][]>([]);
   const [activeSlide, setActiveSlide] = useState(0);
 
+  // delete
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
+
   const type = document?.fileType.toLowerCase() ?? "";
   const previewUrl = document
     ? `${API_BASE}/documents/preview/${document.id}`
@@ -51,6 +61,8 @@ export default function PreviewModal({
   const isSheet = SHEET_TYPES.includes(type);
   const isPpt = PPT_TYPES.includes(type);
 
+  const canDelete = user?.role === "SUPER_ADMIN" || user?.role === "ADMIN";
+
   // Reset state whenever a new document opens
   useEffect(() => {
     setError(null);
@@ -60,6 +72,8 @@ export default function PreviewModal({
     setActiveSheet("");
     setSlides([]);
     setActiveSlide(0);
+    setConfirmDelete(false);
+    setDeleteError("");
 
     if (!document) return;
 
@@ -138,6 +152,20 @@ export default function PreviewModal({
         })
       : "";
 
+  const handleDelete = async () => {
+    if (!document) return;
+    setDeleting(true);
+    setDeleteError("");
+    try {
+      await deleteDocument(document.id);
+      onDeleted?.(document.id);
+      onClose();
+    } catch (err) {
+      setDeleteError("Could not delete this file. Please try again.");
+      setDeleting(false);
+    }
+  };
+
   return (
     <div
       onClick={onClose}
@@ -149,19 +177,32 @@ export default function PreviewModal({
       >
         {/* Header */}
         <div className="flex items-center justify-between border-b px-6 py-5">
-          <div>
-            <h2 className="text-2xl font-semibold text-slate-900">
-              {document.title}
-            </h2>
-            <p className="mt-1 text-sm text-slate-500">
-              {formatFileType(document.fileType)}
-              {isPpt && slides.length > 0 && (
-                <span className="ml-2 text-slate-400">
-                  · Slide {activeSlide + 1} of {slides.length}
-                </span>
-              )}
-            </p>
+          <div className="flex items-center gap-3">
+            {canDelete && (
+              <button
+                onClick={() => setConfirmDelete(true)}
+                title="Delete document"
+                className="rounded-xl p-2 text-red-600 transition hover:bg-red-50"
+              >
+                <Trash2 size={20} />
+              </button>
+            )}
+
+            <div>
+              <h2 className="text-2xl font-semibold text-slate-900">
+                {document.title}
+              </h2>
+              <p className="mt-1 text-sm text-slate-500">
+                {formatFileType(document.fileType)}
+                {isPpt && slides.length > 0 && (
+                  <span className="ml-2 text-slate-400">
+                    · Slide {activeSlide + 1} of {slides.length}
+                  </span>
+                )}
+              </p>
+            </div>
           </div>
+
           <button
             onClick={onClose}
             className="rounded-xl p-2 transition hover:bg-slate-100"
@@ -169,6 +210,32 @@ export default function PreviewModal({
             <X size={24} />
           </button>
         </div>
+
+        {/* Delete confirmation banner */}
+        {confirmDelete && (
+          <div className="flex items-center justify-between gap-4 border-b bg-red-50 px-6 py-3">
+            <p className="text-sm text-red-700">
+              {deleteError ||
+                `Delete "${document.title}" permanently? This cannot be undone.`}
+            </p>
+            <div className="flex shrink-0 gap-2">
+              <button
+                onClick={() => setConfirmDelete(false)}
+                disabled={deleting}
+                className="rounded-xl border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 transition hover:bg-slate-100 disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDelete}
+                disabled={deleting}
+                className="rounded-xl bg-red-600 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-red-700 disabled:opacity-50"
+              >
+                {deleting ? "Deleting..." : "Delete"}
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Sheet tabs (xlsx only) */}
         {isSheet && sheetNames.length > 1 && (

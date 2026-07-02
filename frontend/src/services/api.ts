@@ -136,6 +136,10 @@ export async function downloadDocument(id: number, title: string) {
   window.URL.revokeObjectURL(url);
 }
 
+export async function deleteDocument(id: number): Promise<void> {
+  await apiClient.delete(`/documents/${id}`);
+}
+
 export async function fetchDocumentPreviewBlob(id: number, signal?: AbortSignal): Promise<Blob> {
   const response = await apiClient.get(`/documents/preview/${id}`, {
     responseType: 'blob',
@@ -207,6 +211,23 @@ export function formatRelativeTime(dateString: string): string {
   const diffDays = Math.floor(diffHours / 24);
   if (diffDays === 1) return 'Yesterday';
   return `${diffDays} days ago`;
+}
+
+export function formatFullDateTime(dateString: string): string {
+  const date = new Date(dateString);
+
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const year = date.getFullYear();
+
+  let hours = date.getHours();
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  const ampm = hours >= 12 ? 'pm' : 'am';
+  hours = hours % 12;
+  hours = hours === 0 ? 12 : hours;
+  const hoursStr = String(hours).padStart(2, '0');
+
+  return `${day}/${month}/${year} at ${hoursStr}:${minutes} ${ampm}`;
 }
 
 export function formatRole(role: string): string {

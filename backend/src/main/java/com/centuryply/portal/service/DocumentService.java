@@ -4,12 +4,16 @@ import com.centuryply.portal.entity.Document;
 import com.centuryply.portal.repository.DocumentRepository;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
 @Service
 public class DocumentService {
+
     private final DocumentRepository documentRepository;
 
     public DocumentService(DocumentRepository documentRepository) {
@@ -34,9 +38,11 @@ public class DocumentService {
 
     public long countByTypes(String... fileTypes) {
         long total = 0;
+
         for (String fileType : fileTypes) {
             total += countByType(fileType);
         }
+
         return total;
     }
 
@@ -47,5 +53,17 @@ public class DocumentService {
 
     public Optional<Document> findById(Long id) {
         return documentRepository.findById(id);
+    }
+
+    public void delete(Long id, Path uploadDirectory) throws IOException {
+
+        Document document = documentRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Document not found"));
+
+        Path filePath = uploadDirectory.resolve(document.getFilename()).normalize();
+
+        Files.deleteIfExists(filePath);
+
+        documentRepository.delete(document);
     }
 }

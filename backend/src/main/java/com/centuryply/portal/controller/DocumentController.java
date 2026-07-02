@@ -113,6 +113,13 @@ public class DocumentController {
                         "inline; filename=\"" + document.getTitle() + "\"")
                 .body(resource);
     }
+    @DeleteMapping("/{id}")
+public ResponseEntity<Void> deleteDocument(@PathVariable Long id) throws IOException {
+
+    documentService.delete(id, uploadDirectory);
+
+    return ResponseEntity.noContent().build();
+}
 
     public static class DocumentSummary {
         private long total;

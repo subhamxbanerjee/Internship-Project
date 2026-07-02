@@ -82,20 +82,24 @@ public class PortalSecurityConfig {
                         .requestMatchers("/api/auth/**").authenticated()
 
                         // Upload
-                        .requestMatchers(HttpMethod.POST, "/api/documents/upload")
-                        .hasAnyAuthority(Role.SUPER_ADMIN.name(), Role.ADMIN.name())
+.requestMatchers(HttpMethod.POST, "/api/documents/upload")
+.hasAnyAuthority(Role.SUPER_ADMIN.name(), Role.ADMIN.name())
 
-                        // Admin APIs
-                        .requestMatchers("/api/admin/**")
-                        .hasAnyAuthority(Role.SUPER_ADMIN.name(), Role.ADMIN.name())
+// Delete Documents
+.requestMatchers(HttpMethod.DELETE, "/api/documents/**")
+.hasAuthority(Role.SUPER_ADMIN.name())
 
-                        // User Management
-                        .requestMatchers("/api/users/**")
-                        .hasAuthority(Role.SUPER_ADMIN.name())
+// Admin APIs
+.requestMatchers("/api/admin/**")
+.hasAnyAuthority(Role.SUPER_ADMIN.name(), Role.ADMIN.name())
 
-                        // Documents
-                        .requestMatchers("/api/documents/**")
-                        .authenticated()
+// User Management
+.requestMatchers("/api/users/**")
+.hasAuthority(Role.SUPER_ADMIN.name())
+
+// View / Preview / Download Documents
+.requestMatchers("/api/documents/**")
+.authenticated()
 
                         .anyRequest().permitAll()
                 )
