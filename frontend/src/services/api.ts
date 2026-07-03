@@ -184,7 +184,7 @@ export function getApiErrorMessage(error: unknown, fallback: string): string {
   if (isAxiosError(error)) {
     const message = error.response?.data?.message;
     if (typeof message === 'string') return message;
-    if (error.response?.status === 401) return 'Session expired. Please login again.';
+    if (error.response?.status === 401) return 'Incorrect Details.Try with correct details';
     if (error.response?.status === 403) return 'You do not have permission for this action.';
   }
   return fallback;
