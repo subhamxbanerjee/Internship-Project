@@ -131,11 +131,11 @@ The frontend runs on `http://localhost:5173`.
 
 ## Sample Users
 
-| Username | Password | Role |
+| Username | Role |
 |----------|----------|------|
-| superadmin | password | SUPER_ADMIN |
-| admin | password | ADMIN |
-| employee | password | EMPLOYEE |
+| superadmin | SUPER_ADMIN |
+| admin | ADMIN |
+| employee | EMPLOYEE |
 
 ## Roadmap
 
