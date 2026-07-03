@@ -1,9 +1,11 @@
 import { Eye } from "lucide-react";
 import { useEffect, useMemo, useState } from 'react';
 import {
+  AuthUser,
   DocumentItem,
-  deleteDocument,          // ✅ added
+  deleteDocument,
   downloadDocument,
+  fetchCurrentUser,
   fetchDocuments,
   formatFileType,
   formatRelativeTime,
@@ -21,15 +23,22 @@ function DocumentsPage() {
   const [error, setError] = useState('');
   const [downloadError, setDownloadError] = useState('');
   const [previewDoc, setPreviewDoc] = useState<DocumentItem | null>(null);
+  const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
 
-  useEffect(() => {
-    fetchDocuments()
-      .then(setDocuments)
-      .catch(() => {
-        setError('Could not load documents. Please refresh the page.');
-      })
-      .finally(() => setLoading(false));
-  }, []);
+useEffect(() => {
+  Promise.all([
+    fetchDocuments(),
+    fetchCurrentUser(),
+  ])
+    .then(([docs, user]) => {
+      setDocuments(docs);
+      setCurrentUser(user);
+    })
+    .catch(() => {
+      setError('Could not load documents. Please refresh the page.');
+    })
+    .finally(() => setLoading(false));
+}, []);
 
   const filteredDocuments = useMemo(() => {
     return documents
@@ -135,13 +144,15 @@ function DocumentsPage() {
                   </button>
 
                   {/* ✅ Delete button added */}
-                  <button
-                    onClick={() => handleDelete(doc)}
-                    disabled={deletingId === doc.id}
-                    className="rounded-2xl bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700 disabled:opacity-60"
-                  >
-                    {deletingId === doc.id ? "Deleting..." : "Delete"}
-                  </button>
+                {currentUser?.role !== "EMPLOYEE" && (
+  <button
+    onClick={() => handleDelete(doc)}
+    disabled={deletingId === doc.id}
+    className="rounded-2xl bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700 disabled:opacity-60"
+  >
+    {deletingId === doc.id ? "Deleting..." : "Delete"}
+  </button>
+)}
 
                   <button
                     onClick={() => handleDownload(doc)}

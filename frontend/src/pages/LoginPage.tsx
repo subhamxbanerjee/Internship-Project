@@ -112,10 +112,6 @@ function LoginPage() {
             {!submitting && <span aria-hidden>→</span>}
           </button>
         </form>
-
-        <p className="mt-6 text-center text-xs text-slate-400">
-          Demo: superadmin / password
-        </p>
       </div>
     </div>
   );
