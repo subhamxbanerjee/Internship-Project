@@ -131,17 +131,26 @@ The frontend runs on `http://localhost:5173`.
 
 ## Sample Users
 
-| Username | Password | Role |
-|----------|----------|------|
-| superadmin | password | SUPER_ADMIN |
-| admin | password | ADMIN |
-| employee | password | EMPLOYEE |
+superadmin
+admin
+employee
 
 ## Roadmap
 
-Planned/upcoming features:
+### ✅ Completed
+- [x] Backend setup with Spring Boot + MySQL
+- [x] Authentication (login) with role-based access
+- [x] Role-based route protection (Employee / Admin / Super Admin)
+- [x] Dashboard page
+- [x] Documents listing page
+- [x] Document upload functionality
+- [x] Document download functionality
+- [x] User management (Super Admin only)
+- [x] Settings page
+- [x] Custom favicon added
 
-- [ ] _(add tomorrow's features here as they're built)_
+### 🚧 Planned / Upcoming
+- ticket and incident management portal
 
 ## Notes
 
