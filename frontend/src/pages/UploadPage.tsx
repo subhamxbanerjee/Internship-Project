@@ -63,7 +63,13 @@ function UploadPage() {
             dragging ? 'border-blue-400 bg-blue-50' : 'border-slate-300 bg-slate-50'
           }`}
         >
-          <div className="text-4xl">☁️</div>
+          <svg
+  className="mx-auto h-16 w-16 animate-bounce text-sky-500"
+  viewBox="0 0 24 24"
+  fill="currentColor"
+>
+  <path d="M19.35 10.04A7.49 7.49 0 0 0 12 4a7.49 7.49 0 0 0-7.35 6.04A5.5 5.5 0 0 0 6 20h13a4.5 4.5 0 0 0 .35-9.96zM13 13v3.5a1 1 0 0 1-2 0V13H9.41a.5.5 0 0 1-.35-.85l2.59-2.59a.5.5 0 0 1 .7 0l2.59 2.59a.5.5 0 0 1-.35.85H13z" />
+</svg>
           <div className="mt-4 text-lg font-semibold text-slate-900">Drag & drop files here</div>
           <div className="mt-2 text-slate-500">Or browse files from your computer.</div>
           <input
