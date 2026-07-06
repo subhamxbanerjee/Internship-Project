@@ -3,7 +3,7 @@ import axios, { AxiosInstance, isAxiosError } from 'axios';
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api';
 const STORAGE_KEY = 'centuryply_auth';
 
-let apiClient: AxiosInstance = createApiClient();
+export let apiClient: AxiosInstance = createApiClient();
 let onUnauthorized: (() => void) | null = null;
 
 function createApiClient(username?: string, password?: string): AxiosInstance {

@@ -1,22 +1,25 @@
 import { Route, Routes, Navigate } from 'react-router-dom';
+import type { ReactNode } from 'react';
 import DashboardPage from './pages/DashboardPage';
 import DocumentsPage from './pages/DocumentsPage';
 import UploadPage from './pages/UploadPage';
 import UsersPage from './pages/UsersPage';
 import SettingsPage from './pages/SettingsPage';
+import ViewIncidentsPage from './pages/ViewIncidentsPage';
+import ReportIncidentPage from './pages/ReportIncidentPage';
 import LoginPage from './pages/LoginPage';
 import Layout from './layouts/Layout';
 import { AuthProvider, useAuth } from './context/AuthContext';
 
-function ProtectedRoute({ children }: { children: React.ReactNode }) {
+function ProtectedRoute({ children }: { children: ReactNode }) {
   const { isAuthenticated } = useAuth();
   return isAuthenticated ? <>{children}</> : <Navigate to="/login" />;
 }
 
-function AdminRoute({ children }: { children: React.ReactNode }) {
+function AdminRoute({ children }: { children: ReactNode }) {
   const { isAuthenticated, role } = useAuth();
   if (!isAuthenticated) return <Navigate to="/login" />;
-  if (role !== 'SUPER_ADMIN') return <Navigate to="/" />;
+  if (role !== 'ADMIN' && role !== 'SUPER_ADMIN') return <Navigate to="/incidents" />;
   return <>{children}</>;
 }
 
@@ -30,6 +33,8 @@ function AppRoutes() {
         <Route index element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
         <Route path="documents" element={<ProtectedRoute><DocumentsPage /></ProtectedRoute>} />
         <Route path="upload" element={<ProtectedRoute><UploadPage /></ProtectedRoute>} />
+        <Route path="incidents" element={<ProtectedRoute><ViewIncidentsPage /></ProtectedRoute>} />
+        <Route path="incidents/report" element={<AdminRoute><ReportIncidentPage /></AdminRoute>} />
         <Route path="users" element={<AdminRoute><UsersPage /></AdminRoute>} />
         <Route path="settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
       </Route>

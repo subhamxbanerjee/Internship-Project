@@ -70,41 +70,80 @@ public class PortalSecurityConfig {
 
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
 
+                .securityContext(securityContext -> securityContext
+                    .requireExplicitSave(false)
+                )
+
                 .authorizeHttpRequests(auth -> auth
 
                         // Allow browser preflight requests
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                        // Public APIs
+                        // Public APIs - must come first
                         .requestMatchers("/api/auth/login", "/api/auth/register").permitAll()
-
-                        // Authenticated APIs
-                        .requestMatchers("/api/auth/**").authenticated()
+                        .requestMatchers("/").permitAll()
 
                         // Upload
-.requestMatchers(HttpMethod.POST, "/api/documents/upload")
-.hasAnyAuthority(Role.SUPER_ADMIN.name(), Role.ADMIN.name())
+                        .requestMatchers(HttpMethod.POST, "/api/documents/upload")
+                        .hasAnyAuthority(Role.SUPER_ADMIN.name(), Role.ADMIN.name())
 
-// Delete Documents
-.requestMatchers(HttpMethod.DELETE, "/api/documents/**")
-.hasAuthority(Role.SUPER_ADMIN.name())
+                        // Delete Documents
+                        .requestMatchers(HttpMethod.DELETE, "/api/documents/**")
+                        .hasAuthority(Role.SUPER_ADMIN.name())
 
-// Admin APIs
-.requestMatchers("/api/admin/**")
-.hasAnyAuthority(Role.SUPER_ADMIN.name(), Role.ADMIN.name())
+                        // Admin APIs
+                        .requestMatchers("/api/admin/**")
+                        .hasAnyAuthority(Role.SUPER_ADMIN.name(), Role.ADMIN.name())
 
-// User Management
-.requestMatchers("/api/users/**")
-.hasAuthority(Role.SUPER_ADMIN.name())
+                        // User Management
+                        .requestMatchers("/api/users/**")
+                        .hasAuthority(Role.SUPER_ADMIN.name())
 
-// View / Preview / Download Documents
-.requestMatchers("/api/documents/**")
-.authenticated()
+                        // Incident Management - Create (Admin and Super Admin only)
+                        .requestMatchers(HttpMethod.POST, "/api/incidents")
+                        .hasAnyAuthority(Role.SUPER_ADMIN.name(), Role.ADMIN.name())
 
-                        .anyRequest().permitAll()
+                        // Incident Management - Delete (Admin and Super Admin only)
+                        .requestMatchers(HttpMethod.DELETE, "/api/incidents/**")
+                        .hasAnyAuthority(Role.SUPER_ADMIN.name(), Role.ADMIN.name())
+
+                        // Incident Management - Assign / Priority / Close (Admin and Super Admin only)
+                        .requestMatchers(HttpMethod.PUT, "/api/incidents/*/assign")
+                        .hasAnyAuthority(Role.SUPER_ADMIN.name(), Role.ADMIN.name())
+                        .requestMatchers(HttpMethod.PUT, "/api/incidents/*/priority")
+                        .hasAnyAuthority(Role.SUPER_ADMIN.name(), Role.ADMIN.name())
+                        .requestMatchers(HttpMethod.PUT, "/api/incidents/*/close")
+                        .hasAnyAuthority(Role.SUPER_ADMIN.name(), Role.ADMIN.name())
+
+                        // Incident Management - Comment (Employees, Admins and Super Admins)
+                        .requestMatchers(HttpMethod.PUT, "/api/incidents/*/comment")
+                        .hasAnyAuthority(Role.EMPLOYEE.name(), Role.ADMIN.name(), Role.SUPER_ADMIN.name())
+
+                        // Incident Management - Status updates (All authenticated users, with service-side validation)
+                        .requestMatchers(HttpMethod.PUT, "/api/incidents/*/status")
+                        .hasAnyAuthority(Role.EMPLOYEE.name(), Role.ADMIN.name(), Role.SUPER_ADMIN.name())
+
+                        // Incident Management - View (All authenticated users, but service filters employee access)
+                        .requestMatchers(HttpMethod.GET, "/api/incidents/**")
+                        .hasAnyAuthority(Role.EMPLOYEE.name(), Role.ADMIN.name(), Role.SUPER_ADMIN.name())
+
+                        // View / Preview / Download Documents
+                        .requestMatchers("/api/documents/**")
+                        .authenticated()
+
+                        // Authenticated auth endpoints (except login/register)
+                        .requestMatchers("/api/auth/me").authenticated()
+                        .requestMatchers("/api/auth/change-password").authenticated()
+
+                        .anyRequest().authenticated()
                 )
 
-                .httpBasic(httpBasic -> {})
+                .httpBasic(httpBasic -> httpBasic
+                    .authenticationEntryPoint((request, response, authException) -> {
+                        response.setStatus(401);
+                        response.setHeader("WWW-Authenticate", "Basic realm=\"CenturyPly Portal\"");
+                    })
+                )
 
                 .headers(headers ->
                         headers.frameOptions(frame -> frame.disable())

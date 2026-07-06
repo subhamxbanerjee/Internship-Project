@@ -66,7 +66,10 @@ function Layout() {
           <nav className="space-y-2">
             <NavLink className={navClass} to="/">Dashboard</NavLink>
             <NavLink className={navClass} to="/documents">Documents</NavLink>
-            <NavLink className={navClass} to="/upload">Upload</NavLink>
+            <NavLink className={navClass} to="/incidents">View Incidents</NavLink>
+            {role === 'ADMIN' || role === 'SUPER_ADMIN' ? (
+              <NavLink className={navClass} to="/incidents/report">Report Incident</NavLink>
+            ) : null}
             {role === 'SUPER_ADMIN' && <NavLink className={navClass} to="/users">Users</NavLink>}
             <NavLink className={navClass} to="/settings">Settings</NavLink>
           </nav>
