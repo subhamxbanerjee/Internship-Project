@@ -1,4 +1,4 @@
-import { Printer, X } from 'lucide-react';
+import { X } from 'lucide-react';
 import logo from '../assets/logo-new.png';
 import { DepartmentBadge } from './DepartmentBadge';
 import { PriorityBadge } from './PriorityBadge';
@@ -96,9 +96,6 @@ export default function IncidentDetailsModal({ incident, role, onClose }: Incide
                 Export PDF
               </button>
             )}
-            <button type="button" onClick={() => window.print()} className="rounded-full border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
-              <Printer size={16} />
-            </button>
             <button type="button" onClick={onClose} className="rounded-full p-2 text-slate-500 hover:bg-slate-100">
               <X size={18} />
             </button>
