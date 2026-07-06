@@ -50,26 +50,25 @@ class IncidentServiceTest {
     }
 
     @Test
-    void allAuthenticatedUsersShouldSeeAllIncidents() {
+    void employeeShouldOnlySeeAssignedIncidents() {
         User employee = new User("employee", "password", "Employee User", "employee@centuryply.com", Role.EMPLOYEE);
         employee.setId(2L);
 
         User otherEmployee = new User("other", "password", "Other User", "other@centuryply.com", Role.EMPLOYEE);
         otherEmployee.setId(3L);
 
-        Incident incident1 = new Incident("CPLY0001", "Issue 1", "Needs attention", Department.IT, Priority.HIGH, Status.OPEN, employee);
-        incident1.setAssignedToUser(employee);
+        Incident assignedIncident = new Incident("CPLY0001", "Assigned issue", "Needs attention", Department.IT, Priority.HIGH, Status.OPEN, employee);
+        assignedIncident.setAssignedToUser(employee);
 
-        Incident incident2 = new Incident("CPLY0002", "Issue 2", "Needs attention", Department.IT, Priority.MEDIUM, Status.OPEN, otherEmployee);
-        incident2.setAssignedToUser(otherEmployee);
+        Incident otherIncident = new Incident("CPLY0002", "Other issue", "Needs attention", Department.IT, Priority.MEDIUM, Status.OPEN, otherEmployee);
+        otherIncident.setAssignedToUser(otherEmployee);
 
         when(userRepository.findByUsername("employee")).thenReturn(Optional.of(employee));
-        when(incidentRepository.findAll()).thenReturn(List.of(incident1, incident2));
+        when(incidentRepository.findByAssignedToUser_Username("employee")).thenReturn(List.of(assignedIncident));
 
-        // All authenticated users see all incidents regardless of assignment
         List<Incident> visibleIncidents = incidentService.getAllIncidentsForUser("employee");
 
-        assertThat(visibleIncidents).hasSize(2);
-        assertThat(visibleIncidents).extracting(Incident::getIncidentNumber).containsExactly("CPLY0001", "CPLY0002");
+        assertThat(visibleIncidents).hasSize(1);
+        assertThat(visibleIncidents.get(0).getIncidentNumber()).isEqualTo("CPLY0001");
     }
 }

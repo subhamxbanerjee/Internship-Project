@@ -28,16 +28,21 @@ public class IncidentService {
     }
 
     public List<Incident> getAllIncidentsForUser(String username) {
-        // All authenticated users (SUPER_ADMIN, ADMIN, EMPLOYEE) see all incidents
-        // Assignment is for tracking work, not for visibility filtering
-        resolveUser(username); // Verify user exists
+        User requester = resolveUser(username);
+        if (requester.getRole() == Role.EMPLOYEE) {
+            return incidentRepository.findByAssignedToUser_Username(username);
+        }
         return incidentRepository.findAll();
     }
 
     public Optional<Incident> getIncidentByIdForUser(Long id, String username) {
         Incident incident = findIncidentOrThrow(id);
-        resolveUser(username); // Verify user exists
-        // All authenticated users can view any incident
+        User requester = resolveUser(username);
+        if (requester.getRole() == Role.EMPLOYEE) {
+            if (incident.getAssignedToUser() == null || !username.equals(incident.getAssignedToUser().getUsername())) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Employees can only view incidents assigned to them");
+            }
+        }
         return Optional.of(incident);
     }
 
@@ -103,8 +108,12 @@ public class IncidentService {
 
     public Incident addComment(Long id, String comment, String actorUsername) {
         Incident incident = findIncidentOrThrow(id);
-        resolveUser(actorUsername); // Verify user exists
-        // All authenticated users can add comments to any incident
+        User requester = resolveUser(actorUsername);
+        if (requester.getRole() == Role.EMPLOYEE) {
+            if (incident.getAssignedToUser() == null || !actorUsername.equals(incident.getAssignedToUser().getUsername())) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Employees can only comment on incidents assigned to them");
+            }
+        }
         incident.setEmployeeComment(comment);
         incident.setUpdatedAt(LocalDateTime.now());
         return incidentRepository.save(incident);

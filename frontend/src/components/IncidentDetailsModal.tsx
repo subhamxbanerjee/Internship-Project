@@ -91,7 +91,7 @@ export default function IncidentDetailsModal({ incident, role, onClose }: Incide
             <h2 className="mt-1 text-lg font-semibold text-slate-900 sm:text-xl">{incident.title}</h2>
           </div>
           <div className="flex items-center gap-2">
-            {(role === 'ADMIN' || role === 'SUPER_ADMIN') && (
+            {(role === 'ADMIN' || role === 'SUPER_ADMIN' || role === 'EMPLOYEE') && (
               <button type="button" onClick={handleExportPdf} className="rounded-full border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
                 Export PDF
               </button>
