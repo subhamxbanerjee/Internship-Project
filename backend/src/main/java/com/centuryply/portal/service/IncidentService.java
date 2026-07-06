@@ -28,23 +28,16 @@ public class IncidentService {
     }
 
     public List<Incident> getAllIncidentsForUser(String username) {
-        User requester = resolveUser(username);
-        if (requester.getRole() == Role.EMPLOYEE) {
-            return incidentRepository.findAll().stream()
-                .filter(incident -> incident.getAssignedToUser() != null && username.equals(incident.getAssignedToUser().getUsername()))
-                .toList();
-        }
+        // All authenticated users (SUPER_ADMIN, ADMIN, EMPLOYEE) see all incidents
+        // Assignment is for tracking work, not for visibility filtering
+        resolveUser(username); // Verify user exists
         return incidentRepository.findAll();
     }
 
     public Optional<Incident> getIncidentByIdForUser(Long id, String username) {
         Incident incident = findIncidentOrThrow(id);
-        User requester = resolveUser(username);
-        if (requester.getRole() == Role.EMPLOYEE) {
-            if (incident.getAssignedToUser() == null || !username.equals(incident.getAssignedToUser().getUsername())) {
-                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Employees can only view incidents assigned to them");
-            }
-        }
+        resolveUser(username); // Verify user exists
+        // All authenticated users can view any incident
         return Optional.of(incident);
     }
 
@@ -110,12 +103,8 @@ public class IncidentService {
 
     public Incident addComment(Long id, String comment, String actorUsername) {
         Incident incident = findIncidentOrThrow(id);
-        User requester = resolveUser(actorUsername);
-        if (requester.getRole() == Role.EMPLOYEE) {
-            if (incident.getAssignedToUser() == null || !actorUsername.equals(incident.getAssignedToUser().getUsername())) {
-                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Employees can only comment on incidents assigned to them");
-            }
-        }
+        resolveUser(actorUsername); // Verify user exists
+        // All authenticated users can add comments to any incident
         incident.setEmployeeComment(comment);
         incident.setUpdatedAt(LocalDateTime.now());
         return incidentRepository.save(incident);

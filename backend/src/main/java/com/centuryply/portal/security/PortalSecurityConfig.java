@@ -97,7 +97,7 @@ public class PortalSecurityConfig {
 
                         // User Management
                         .requestMatchers("/api/users/**")
-                        .hasAuthority(Role.SUPER_ADMIN.name())
+                        .hasAnyAuthority(Role.SUPER_ADMIN.name(), Role.ADMIN.name())
 
                         // Incident Management - Create (Admin and Super Admin only)
                         .requestMatchers(HttpMethod.POST, "/api/incidents")

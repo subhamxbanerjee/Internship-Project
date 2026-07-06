@@ -83,12 +83,12 @@ export default function IncidentDetailsModal({ incident, role, onClose }: Incide
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 px-4 py-6">
-      <div className="w-full max-w-3xl rounded-3xl bg-white p-6 shadow-2xl">
-        <div className="flex items-start justify-between gap-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 px-3 py-4 sm:px-4">
+      <div className="flex max-h-[92vh] w-full max-w-3xl flex-col overflow-hidden rounded-3xl bg-white shadow-2xl">
+        <div className="flex items-start justify-between gap-3 border-b border-slate-200 px-5 py-4 sm:px-6">
           <div>
             <p className="text-sm font-medium text-blue-600">{incident.incidentNumber}</p>
-            <h2 className="mt-1 text-xl font-semibold text-slate-900">{incident.title}</h2>
+            <h2 className="mt-1 text-lg font-semibold text-slate-900 sm:text-xl">{incident.title}</h2>
           </div>
           <div className="flex items-center gap-2">
             {(role === 'ADMIN' || role === 'SUPER_ADMIN') && (
@@ -105,68 +105,70 @@ export default function IncidentDetailsModal({ incident, role, onClose }: Incide
           </div>
         </div>
 
-        <div className="mt-6 grid gap-4 md:grid-cols-2">
-          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-            <div className="text-sm text-slate-500">Department</div>
-            <div className="mt-2"><DepartmentBadge department={incident.department} /></div>
+        <div className="flex-1 overflow-y-auto px-5 py-4 sm:px-6">
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+              <div className="text-sm text-slate-500">Department</div>
+              <div className="mt-2"><DepartmentBadge department={incident.department} /></div>
+            </div>
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+              <div className="text-sm text-slate-500">Priority</div>
+              <div className="mt-2"><PriorityBadge priority={incident.priority} /></div>
+            </div>
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+              <div className="text-sm text-slate-500">Status</div>
+              <div className="mt-2"><StatusBadge status={incident.status} /></div>
+            </div>
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+              <div className="text-sm text-slate-500">Assigned Employee</div>
+              <div className="mt-2 text-sm font-medium text-slate-900">{incident.assignedTo || 'Unassigned'}</div>
+            </div>
           </div>
-          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-            <div className="text-sm text-slate-500">Priority</div>
-            <div className="mt-2"><PriorityBadge priority={incident.priority} /></div>
-          </div>
-          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-            <div className="text-sm text-slate-500">Status</div>
-            <div className="mt-2"><StatusBadge status={incident.status} /></div>
-          </div>
-          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-            <div className="text-sm text-slate-500">Assigned Employee</div>
-            <div className="mt-2 text-sm font-medium text-slate-900">{incident.assignedTo || 'Unassigned'}</div>
-          </div>
-        </div>
 
-        <div className="mt-6 rounded-2xl border border-slate-200 p-4">
-          <div className="text-sm font-semibold text-slate-900">Description</div>
-          <p className="mt-2 text-sm leading-6 text-slate-600">{incident.description}</p>
-        </div>
+          <div className="mt-6 rounded-2xl border border-slate-200 p-4">
+            <div className="text-sm font-semibold text-slate-900">Description</div>
+            <p className="mt-2 whitespace-pre-line text-sm leading-6 text-slate-600">{incident.description}</p>
+          </div>
 
-        <div className="mt-6 rounded-2xl border border-slate-200 p-4">
-          <div className="text-sm font-semibold text-slate-900">Timeline</div>
-          <div className="mt-4 grid gap-3 md:grid-cols-2">
-            <div className="rounded-2xl bg-slate-50 p-3">
-              <div className="text-xs uppercase tracking-wide text-slate-500">Created</div>
-              <div className="mt-1 text-sm font-medium text-slate-900">{formatDate(incident.createdAt)}</div>
-            </div>
-            <div className="rounded-2xl bg-slate-50 p-3">
-              <div className="text-xs uppercase tracking-wide text-slate-500">Updated</div>
-              <div className="mt-1 text-sm font-medium text-slate-900">{formatDate(incident.updatedAt)}</div>
-            </div>
-            <div className="rounded-2xl bg-slate-50 p-3">
-              <div className="text-xs uppercase tracking-wide text-slate-500">Current Status</div>
-              <div className="mt-1 text-sm font-medium text-slate-900">{incident.status}</div>
-            </div>
-            <div className="rounded-2xl bg-slate-50 p-3">
-              <div className="text-xs uppercase tracking-wide text-slate-500">Assigned Employee</div>
-              <div className="mt-1 text-sm font-medium text-slate-900">{incident.assignedTo || 'Unassigned'}</div>
+          <div className="mt-6 rounded-2xl border border-slate-200 p-4">
+            <div className="text-sm font-semibold text-slate-900">Timeline</div>
+            <div className="mt-4 grid gap-3 md:grid-cols-2">
+              <div className="rounded-2xl bg-slate-50 p-3">
+                <div className="text-xs uppercase tracking-wide text-slate-500">Created</div>
+                <div className="mt-1 text-sm font-medium text-slate-900">{formatDate(incident.createdAt)}</div>
+              </div>
+              <div className="rounded-2xl bg-slate-50 p-3">
+                <div className="text-xs uppercase tracking-wide text-slate-500">Updated</div>
+                <div className="mt-1 text-sm font-medium text-slate-900">{formatDate(incident.updatedAt)}</div>
+              </div>
+              <div className="rounded-2xl bg-slate-50 p-3">
+                <div className="text-xs uppercase tracking-wide text-slate-500">Current Status</div>
+                <div className="mt-1 text-sm font-medium text-slate-900">{incident.status}</div>
+              </div>
+              <div className="rounded-2xl bg-slate-50 p-3">
+                <div className="text-xs uppercase tracking-wide text-slate-500">Assigned Employee</div>
+                <div className="mt-1 text-sm font-medium text-slate-900">{incident.assignedTo || 'Unassigned'}</div>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div className="mt-6 grid gap-4 md:grid-cols-2">
-          <div className="rounded-2xl border border-slate-200 p-4">
-            <div className="text-sm text-slate-500">Created By</div>
-            <div className="mt-2 text-sm font-medium text-slate-900">{incident.createdBy || '—'}</div>
-          </div>
-          <div className="rounded-2xl border border-slate-200 p-4">
-            <div className="text-sm text-slate-500">Employee Comment</div>
-            <div className="mt-2 text-sm font-medium text-slate-900">{incident.employeeComment || 'No comment yet.'}</div>
-          </div>
-          <div className="rounded-2xl border border-slate-200 p-4">
-            <div className="text-sm text-slate-500">Closed By</div>
-            <div className="mt-2 text-sm font-medium text-slate-900">{incident.closedBy || '—'}</div>
-          </div>
-          <div className="rounded-2xl border border-slate-200 p-4">
-            <div className="text-sm text-slate-500">Closed Date</div>
-            <div className="mt-2 text-sm font-medium text-slate-900">{incident.closedAt ? formatDate(incident.closedAt) : '—'}</div>
+          <div className="mt-6 grid gap-4 md:grid-cols-2">
+            <div className="rounded-2xl border border-slate-200 p-4">
+              <div className="text-sm text-slate-500">Created By</div>
+              <div className="mt-2 text-sm font-medium text-slate-900">{incident.createdBy || '—'}</div>
+            </div>
+            <div className="rounded-2xl border border-slate-200 p-4">
+              <div className="text-sm text-slate-500">Employee Comment</div>
+              <div className="mt-2 text-sm font-medium text-slate-900">{incident.employeeComment || 'No comment yet.'}</div>
+            </div>
+            <div className="rounded-2xl border border-slate-200 p-4">
+              <div className="text-sm text-slate-500">Closed By</div>
+              <div className="mt-2 text-sm font-medium text-slate-900">{incident.closedBy || '—'}</div>
+            </div>
+            <div className="rounded-2xl border border-slate-200 p-4">
+              <div className="text-sm text-slate-500">Closed Date</div>
+              <div className="mt-2 text-sm font-medium text-slate-900">{incident.closedAt ? formatDate(incident.closedAt) : '—'}</div>
+            </div>
           </div>
         </div>
       </div>

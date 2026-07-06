@@ -46,9 +46,21 @@ function ViewIncidentsPage() {
     setLoading(true);
     setError('');
     try {
-      const [incidentData, assignableUsers] = await Promise.all([fetchIncidents(), fetchAssignableUsers()]);
+      // Load incidents first (required for all users)
+      const incidentData = await fetchIncidents();
       setIncidents(incidentData);
-      setUsers(assignableUsers);
+
+      // Load users only for admins (optional for incident filtering)
+      if (role === 'ADMIN' || role === 'SUPER_ADMIN') {
+        try {
+          const assignableUsers = await fetchAssignableUsers();
+          setUsers(assignableUsers);
+        } catch (err) {
+          // Users load failure is non-fatal; incidents are still visible
+          console.warn('Could not load assignable users:', err);
+          setUsers([]);
+        }
+      }
     } catch {
       setError('Could not load incidents. Please refresh and try again.');
     } finally {
