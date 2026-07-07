@@ -80,7 +80,7 @@ function LoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full rounded-xl border border-slate-200 bg-white/90 py-3 pl-10 pr-10 text-slate-900"
                 required
-                minLength={6}
+                minLength={3}
               />
               <button
                 type="button"
