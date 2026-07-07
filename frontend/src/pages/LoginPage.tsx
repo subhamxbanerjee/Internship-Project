@@ -59,10 +59,11 @@ function LoginPage() {
               <User className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
               <input
                 value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                onChange={(e) => setUsername(e.target.value.trim())}
                 placeholder="e.g. CP_12345"
                 className="w-full rounded-xl border border-slate-200 bg-white/90 py-3 pl-10 pr-4 text-slate-900 placeholder:text-slate-400"
                 required
+                minLength={3}
               />
             </div>
           </label>
@@ -79,6 +80,7 @@ function LoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full rounded-xl border border-slate-200 bg-white/90 py-3 pl-10 pr-10 text-slate-900"
                 required
+                minLength={6}
               />
               <button
                 type="button"

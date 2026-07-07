@@ -71,14 +71,8 @@ export function clearAuthCredentials() {
   apiClient = createApiClient();
 }
 
-export function updateStoredPassword(newPassword: string) {
-  const stored = sessionStorage.getItem(STORAGE_KEY);
-  if (!stored) return;
-
-  const credentials = JSON.parse(stored) as { username: string; password: string };
-  credentials.password = newPassword;
-  sessionStorage.setItem(STORAGE_KEY, JSON.stringify(credentials));
-  setAuthCredentials(credentials.username, newPassword);
+export function updateStoredUser(user: AuthUser) {
+  sessionStorage.setItem(STORAGE_KEY, JSON.stringify(user));
 }
 
 export async function login(username: string, password: string): Promise<void> {
@@ -93,7 +87,6 @@ export async function fetchCurrentUser(): Promise<AuthUser> {
 
 export async function changePassword(currentPassword: string, newPassword: string) {
   await apiClient.post('/auth/change-password', { currentPassword, newPassword });
-  updateStoredPassword(newPassword);
 }
 
 export async function fetchDocumentSummary(): Promise<DocumentSummary> {

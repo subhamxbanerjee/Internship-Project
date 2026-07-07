@@ -3,12 +3,20 @@ package com.centuryply.portal.controller;
 import com.centuryply.portal.entity.Role;
 import com.centuryply.portal.entity.User;
 import com.centuryply.portal.service.UserService;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -16,6 +24,8 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
+    private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
+
     private final AuthenticationManager authenticationManager;
     private final UserService userService;
 
@@ -24,61 +34,39 @@ public class AuthController {
         this.userService = userService;
     }
 
-  @PostMapping("/login")
-public ResponseEntity<?> login(@RequestBody LoginRequest request) {
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request) {
+        try {
+            logger.info("Login attempt for username={}", request.getUsername());
 
-    try {
-        System.out.println("======================================");
-        System.out.println("LOGIN ATTEMPT");
-        System.out.println("Username: " + request.getUsername());
-        System.out.println("======================================");
+            Authentication auth = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            request.getUsername(),
+                            request.getPassword()
+                    )
+            );
 
-        Authentication auth = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        request.getUsername(),
-                        request.getPassword()
-                )
-        );
+            SecurityContextHolder.getContext().setAuthentication(auth);
+            logger.info("Login succeeded for username={}", auth.getName());
 
-        SecurityContextHolder.getContext().setAuthentication(auth);
+            Map<String, Object> response = new HashMap<>();
+            response.put("username", auth.getName());
+            response.put("role", auth.getAuthorities()
+                    .stream()
+                    .findFirst()
+                    .map(Object::toString)
+                    .orElse("EMPLOYEE"));
 
-        System.out.println("LOGIN SUCCESS");
-        System.out.println("Authenticated User: " + auth.getName());
-        System.out.println("Authorities: " + auth.getAuthorities());
+            return ResponseEntity.ok(response);
 
-        Map<String, Object> response = new HashMap<>();
-        response.put("username", auth.getName());
-        response.put("role", auth.getAuthorities()
-                .stream()
-                .findFirst()
-                .map(Object::toString)
-                .orElse("EMPLOYEE"));
-
-        return ResponseEntity.ok(response);
-
-    } catch (Exception e) {
-
-        System.out.println("======================================");
-        System.out.println("LOGIN FAILED");
-        System.out.println("Username: " + request.getUsername());
-        System.out.println("Exception: " + e.getClass().getSimpleName());
-        System.out.println("Message: " + e.getMessage());
-        System.out.println("======================================");
-
-        e.printStackTrace();
-
-        return ResponseEntity.status(401).body(
-                Map.of(
-                        "message", "Invalid username or password",
-                        "exception", e.getClass().getSimpleName(),
-                        "details", e.getMessage()
-                )
-        );
+        } catch (Exception ex) {
+            logger.warn("Login failed for username={}", request.getUsername(), ex);
+            return ResponseEntity.status(401).body(Map.of("message", "Invalid username or password"));
+        }
     }
-}
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
+    public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest request) {
         User user = new User(request.getUsername(), request.getPassword(), request.getFullName(), request.getEmail(), Role.EMPLOYEE);
         userService.save(user);
         return ResponseEntity.ok(Map.of("message", "User created"));
@@ -96,7 +84,7 @@ public ResponseEntity<?> login(@RequestBody LoginRequest request) {
     }
 
     @PostMapping("/change-password")
-    public ResponseEntity<?> changePassword(Authentication auth, @RequestBody ChangePasswordRequest request) {
+    public ResponseEntity<?> changePassword(Authentication auth, @Valid @RequestBody ChangePasswordRequest request) {
         User user = userService.findByUsername(auth.getName()).orElseThrow();
         if (!userService.matchesPassword(user, request.getCurrentPassword())) {
             return ResponseEntity.badRequest().body(Map.of("message", "Current password is incorrect"));
@@ -106,7 +94,10 @@ public ResponseEntity<?> login(@RequestBody LoginRequest request) {
     }
 
     public static class LoginRequest {
+        @NotBlank
         private String username;
+
+        @NotBlank
         private String password;
 
         public String getUsername() {
@@ -127,9 +118,16 @@ public ResponseEntity<?> login(@RequestBody LoginRequest request) {
     }
 
     public static class RegisterRequest {
+        @NotBlank
         private String username;
+
+        @NotBlank
         private String password;
+
+        @NotBlank
         private String fullName;
+
+        @NotBlank
         private String email;
 
         public String getUsername() {
@@ -166,7 +164,10 @@ public ResponseEntity<?> login(@RequestBody LoginRequest request) {
     }
 
     public static class ChangePasswordRequest {
+        @NotBlank
         private String currentPassword;
+
+        @NotBlank
         private String newPassword;
 
         public String getCurrentPassword() {

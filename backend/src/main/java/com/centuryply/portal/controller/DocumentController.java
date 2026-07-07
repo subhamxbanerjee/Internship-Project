@@ -2,33 +2,54 @@ package com.centuryply.portal.controller;
 
 import com.centuryply.portal.entity.Document;
 import com.centuryply.portal.service.DocumentService;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Locale;
+import java.util.Set;
+import java.util.regex.Pattern;
 
 @RestController
 @RequestMapping("/api/documents")
+@Validated
 public class DocumentController {
+    private static final Set<String> ALLOWED_EXTENSIONS = Set.of("pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx", "png", "jpg", "jpeg");
+    private static final long MAX_UPLOAD_SIZE = 50L * 1024L * 1024L;
+    private static final Pattern SAFE_FILENAME_PATTERN = Pattern.compile("^[A-Za-z0-9._-]+$");
+
     private final DocumentService documentService;
     private final Path uploadDirectory;
 
-    public DocumentController(DocumentService documentService, @Value("${portal.upload-dir}") String uploadDir) throws IOException {
+    public DocumentController(DocumentService documentService, @Value("${portal.upload-dir:uploads}") String uploadDir) throws IOException {
         this.documentService = documentService;
-        this.uploadDirectory = Paths.get(uploadDir).toAbsolutePath();
+        this.uploadDirectory = Paths.get(uploadDir).toAbsolutePath().normalize();
         Files.createDirectories(this.uploadDirectory);
     }
 
@@ -54,72 +75,115 @@ public class DocumentController {
     }
 
     @PostMapping("/upload")
-    public ResponseEntity<Document> uploadDocument(@RequestParam("file") MultipartFile file, @RequestParam("uploadedBy") String uploadedBy) throws IOException {
-        String originalFilename = StringUtils.cleanPath(file.getOriginalFilename());
-        String fileType = StringUtils.getFilenameExtension(originalFilename);
-        String storageFilename = System.currentTimeMillis() + "-" + originalFilename;
-        Path targetPath = uploadDirectory.resolve(storageFilename);
-        Files.copy(file.getInputStream(), targetPath);
+    public ResponseEntity<Document> uploadDocument(@NotNull @RequestParam("file") MultipartFile file, Authentication auth) throws IOException {
+        if (auth == null || !auth.isAuthenticated()) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
+        }
+        if (file.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "File is empty");
+        }
+        if (file.getSize() > MAX_UPLOAD_SIZE) {
+            throw new ResponseStatusException(HttpStatus.PAYLOAD_TOO_LARGE, "File exceeds the maximum size limit");
+        }
 
-        Document document = new Document(file.getOriginalFilename(), storageFilename, fileType != null ? fileType : "unknown", file.getSize(), LocalDateTime.now(), uploadedBy);
+        String originalFilename = StringUtils.cleanPath(file.getOriginalFilename());
+        validateFilename(originalFilename);
+
+        String extension = StringUtils.getFilenameExtension(originalFilename);
+        if (extension == null || !ALLOWED_EXTENSIONS.contains(extension.toLowerCase(Locale.ROOT))) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unsupported file type");
+        }
+
+        String baseName = originalFilename.contains(".")
+                ? originalFilename.substring(0, originalFilename.lastIndexOf('.'))
+                : originalFilename;
+        String safeBaseName = baseName.replaceAll("[^A-Za-z0-9._-]", "_");
+        String storageFilename = System.currentTimeMillis() + "-" + safeBaseName + "." + extension.toLowerCase(Locale.ROOT);
+        Path targetPath = uploadDirectory.resolve(storageFilename).normalize();
+        if (!targetPath.startsWith(uploadDirectory)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid file path");
+        }
+
+        Files.copy(file.getInputStream(), targetPath, StandardCopyOption.REPLACE_EXISTING);
+
+        Document document = new Document(
+                file.getOriginalFilename(),
+                storageFilename,
+                extension.toLowerCase(Locale.ROOT),
+                file.getSize(),
+                LocalDateTime.now(),
+                auth.getName()
+        );
         return ResponseEntity.ok(documentService.save(document));
     }
 
     @GetMapping("/download/{id}")
-    public ResponseEntity<Resource> downloadDocument(@PathVariable("id") Long id) throws MalformedURLException {
-        Document document = documentService.findById(id).orElseThrow();
+    public ResponseEntity<Resource> downloadDocument(@Positive @PathVariable("id") Long id, Authentication auth) throws MalformedURLException {
+        if (auth == null || !auth.isAuthenticated()) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
+        }
+
+        Document document = documentService.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Document not found"));
 
         Path filePath = uploadDirectory.resolve(document.getFilename()).normalize();
-        if (!Files.exists(filePath)) {
-            return ResponseEntity.notFound().build();
+        if (!filePath.startsWith(uploadDirectory) || !Files.exists(filePath)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Document not found");
         }
 
         Resource resource = new UrlResource(filePath.toUri());
         if (!resource.exists() || !resource.isReadable()) {
-            return ResponseEntity.notFound().build();
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Document not found");
         }
-        String contentType = "application/octet-stream";
 
         return ResponseEntity.ok()
-            .contentType(MediaType.parseMediaType(contentType))
-            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + document.getTitle() + "\"")
-            .body(resource);
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + document.getTitle() + "\"")
+                .body(resource);
     }
 
     @GetMapping("/preview/{id}")
-    public ResponseEntity<Resource> previewDocument(@PathVariable Long id) throws IOException {
-        Document document = documentService.findById(id).orElseThrow();
+    public ResponseEntity<Resource> previewDocument(@Positive @PathVariable Long id, Authentication auth) throws IOException {
+        if (auth == null || !auth.isAuthenticated()) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
+        }
 
+        Document document = documentService.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Document not found"));
         Path filePath = uploadDirectory.resolve(document.getFilename()).normalize();
 
-        if (!Files.exists(filePath)) {
-            return ResponseEntity.notFound().build();
+        if (!filePath.startsWith(uploadDirectory) || !Files.exists(filePath)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Document not found");
         }
 
         Resource resource = new UrlResource(filePath.toUri());
-
         if (!resource.exists() || !resource.isReadable()) {
-            return ResponseEntity.notFound().build();
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Document not found");
         }
 
         String contentType = Files.probeContentType(filePath);
         if (contentType == null) {
-            contentType = "application/octet-stream";
+            contentType = MediaType.APPLICATION_OCTET_STREAM_VALUE;
         }
 
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(contentType))
-                .header(HttpHeaders.CONTENT_DISPOSITION,
-                        "inline; filename=\"" + document.getTitle() + "\"")
+                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + document.getTitle() + "\"")
                 .body(resource);
     }
+
     @DeleteMapping("/{id}")
-public ResponseEntity<Void> deleteDocument(@PathVariable Long id) throws IOException {
+    public ResponseEntity<Void> deleteDocument(@Positive @PathVariable Long id) throws IOException {
+        documentService.delete(id, uploadDirectory);
+        return ResponseEntity.noContent().build();
+    }
 
-    documentService.delete(id, uploadDirectory);
-
-    return ResponseEntity.noContent().build();
-}
+    private void validateFilename(String originalFilename) {
+        if (originalFilename == null || originalFilename.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid file name");
+        }
+        if (originalFilename.contains("..") || originalFilename.contains("\\") || Paths.get(originalFilename).isAbsolute() || !SAFE_FILENAME_PATTERN.matcher(originalFilename).matches()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid file name");
+        }
+    }
 
     public static class DocumentSummary {
         private long total;

@@ -24,6 +24,14 @@ const OFFICE_TYPES = ["docx"];
 const SHEET_TYPES = ["xlsx", "xls", "csv"];
 const PPT_TYPES = ["pptx"];
 
+function sanitizeHtmlFragment(value: string): string {
+  return value
+    .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "")
+    .replace(/on\w+\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi, "")
+    .replace(/javascript:/gi, "")
+    .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "");
+}
+
 export default function PreviewModal({
   document,
   onClose,
@@ -147,9 +155,11 @@ export default function PreviewModal({
 
   const activeSheetHtml =
     workbook && activeSheet
-      ? XLSX.utils.sheet_to_html(workbook.Sheets[activeSheet], {
-          id: "sheet-table",
-        })
+      ? sanitizeHtmlFragment(
+          XLSX.utils.sheet_to_html(workbook.Sheets[activeSheet], {
+            id: "sheet-table",
+          })
+        )
       : "";
 
   const handleDelete = async () => {
@@ -294,7 +304,7 @@ export default function PreviewModal({
             <div className="mx-auto max-w-3xl rounded-2xl bg-white p-10 shadow">
               <div
                 className="docx-preview prose prose-slate max-w-none"
-                dangerouslySetInnerHTML={{ __html: docHtml }}
+                dangerouslySetInnerHTML={{ __html: sanitizeHtmlFragment(docHtml) }}
               />
             </div>
           ) : isSheet && activeSheetHtml ? (

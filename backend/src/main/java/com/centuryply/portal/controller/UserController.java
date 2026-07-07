@@ -3,8 +3,19 @@ package com.centuryply.portal.controller;
 import com.centuryply.portal.entity.Role;
 import com.centuryply.portal.entity.User;
 import com.centuryply.portal.service.UserService;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 import java.util.Map;
@@ -24,7 +35,7 @@ public class UserController {
     }
 
     @PostMapping
-    public ResponseEntity<?> addUser(@RequestBody CreateUserRequest request) {
+    public ResponseEntity<?> addUser(@Valid @RequestBody CreateUserRequest request) {
         try {
             User user = new User(request.getUsername(), request.getPassword(), request.getFullName(), request.getEmail(), request.getRole());
             return ResponseEntity.ok(userService.save(user));
@@ -34,7 +45,7 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<User> updateUser(@PathVariable("id") Long id, @RequestBody UpdateUserRequest request) {
+    public ResponseEntity<User> updateUser(@Positive @PathVariable("id") Long id, @Valid @RequestBody UpdateUserRequest request) {
         User user = userService.findById(id).orElseThrow();
         user.setFullName(request.getFullName());
         user.setEmail(request.getEmail());
@@ -44,22 +55,31 @@ public class UserController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Map<String, String>> deleteUser(@PathVariable("id") Long id) {
+    public ResponseEntity<Map<String, String>> deleteUser(@Positive @PathVariable("id") Long id) {
         userService.delete(id);
         return ResponseEntity.ok(Map.of("message", "User deleted"));
     }
 
     @PostMapping("/{id}/reset-password")
-    public ResponseEntity<Map<String, String>> resetPassword(@PathVariable("id") Long id, @RequestBody ResetPasswordRequest request) {
+    public ResponseEntity<Map<String, String>> resetPassword(@Positive @PathVariable("id") Long id, @Valid @RequestBody ResetPasswordRequest request) {
         userService.resetPassword(id, request.getPassword());
         return ResponseEntity.ok(Map.of("message", "Password reset"));
     }
 
     public static class CreateUserRequest {
+        @NotBlank
         private String username;
+
+        @NotBlank
         private String password;
+
+        @NotBlank
         private String fullName;
+
+        @NotBlank
         private String email;
+
+        @NotNull
         private Role role;
 
         public String getUsername() {
@@ -104,9 +124,15 @@ public class UserController {
     }
 
     public static class UpdateUserRequest {
+        @NotBlank
         private String fullName;
+
+        @NotBlank
         private String email;
+
+        @NotNull
         private Role role;
+
         private boolean active;
 
         public String getFullName() {
@@ -143,6 +169,7 @@ public class UserController {
     }
 
     public static class ResetPasswordRequest {
+        @NotBlank
         private String password;
 
         public String getPassword() {
