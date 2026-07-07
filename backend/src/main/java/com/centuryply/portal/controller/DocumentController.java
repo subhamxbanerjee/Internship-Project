@@ -94,6 +94,11 @@ public class DocumentController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unsupported file type");
         }
 
+        String contentType = file.getContentType();
+        if (contentType == null || !isAllowedMimeType(contentType)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unsupported file type");
+        }
+
         String baseName = originalFilename.contains(".")
                 ? originalFilename.substring(0, originalFilename.lastIndexOf('.'))
                 : originalFilename;
@@ -180,9 +185,22 @@ public class DocumentController {
         if (originalFilename == null || originalFilename.isBlank()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid file name");
         }
-        if (originalFilename.contains("..") || originalFilename.contains("\\") || Paths.get(originalFilename).isAbsolute() || !SAFE_FILENAME_PATTERN.matcher(originalFilename).matches()) {
+        if (originalFilename.contains("..") || originalFilename.contains("\\") || originalFilename.contains("\0") || Paths.get(originalFilename).isAbsolute() || !SAFE_FILENAME_PATTERN.matcher(originalFilename).matches()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid file name");
         }
+    }
+
+    private boolean isAllowedMimeType(String contentType) {
+        return contentType.equalsIgnoreCase("application/pdf")
+                || contentType.equalsIgnoreCase("application/msword")
+                || contentType.equalsIgnoreCase("application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+                || contentType.equalsIgnoreCase("application/vnd.ms-excel")
+                || contentType.equalsIgnoreCase("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+                || contentType.equalsIgnoreCase("application/vnd.ms-powerpoint")
+                || contentType.equalsIgnoreCase("application/vnd.openxmlformats-officedocument.presentationml.presentation")
+                || contentType.equalsIgnoreCase("image/png")
+                || contentType.equalsIgnoreCase("image/jpeg")
+                || contentType.equalsIgnoreCase("image/jpg");
     }
 
     public static class DocumentSummary {

@@ -80,7 +80,8 @@ public class PortalSecurityConfig {
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
                         // Public APIs - must come first
-                        .requestMatchers("/api/auth/login", "/api/auth/register").permitAll()
+                        .requestMatchers("/api/auth/login").permitAll()
+                        .requestMatchers("/api/auth/register").hasAnyAuthority(Role.SUPER_ADMIN.name(), Role.ADMIN.name())
                         .requestMatchers("/").permitAll()
 
                         // Upload

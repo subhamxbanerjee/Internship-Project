@@ -104,10 +104,9 @@ export async function fetchRecentDocuments(): Promise<DocumentItem[]> {
   return response.data;
 }
 
-export async function uploadDocument(file: File, uploadedBy: string): Promise<DocumentItem> {
+export async function uploadDocument(file: File): Promise<DocumentItem> {
   const formData = new FormData();
   formData.append('file', file);
-  formData.append('uploadedBy', uploadedBy);
   const response = await apiClient.post('/documents/upload', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   });

@@ -66,7 +66,15 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest request) {
+    public ResponseEntity<?> register(Authentication auth, @Valid @RequestBody RegisterRequest request) {
+        if (auth == null || !auth.isAuthenticated()) {
+            return ResponseEntity.status(401).body(Map.of("message", "Authentication required"));
+        }
+        boolean isAdmin = auth.getAuthorities().stream()
+                .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals(Role.SUPER_ADMIN.name()) || grantedAuthority.getAuthority().equals(Role.ADMIN.name()));
+        if (!isAdmin) {
+            return ResponseEntity.status(403).body(Map.of("message", "Administrator access required"));
+        }
         User user = new User(request.getUsername(), request.getPassword(), request.getFullName(), request.getEmail(), Role.EMPLOYEE);
         userService.save(user);
         return ResponseEntity.ok(Map.of("message", "User created"));

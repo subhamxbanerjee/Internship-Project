@@ -33,7 +33,7 @@ function UploadPage() {
         if (file.size > 50 * 1024 * 1024) {
           throw new Error(`${file.name} exceeds the 50MB limit.`);
         }
-        await uploadDocument(file, user?.username || 'admin');
+        await uploadDocument(file);
       }
       setMessage(`${files.length} file(s) uploaded successfully.`);
       setTimeout(() => navigate('/documents'), 1500);
