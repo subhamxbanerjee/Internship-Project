@@ -1,2 +1,3 @@
 com\centuryply\portal\controller\AuthControllerTest.class
+com\centuryply\portal\controller\AuthControllerSecurityTest.class
 com\centuryply\portal\service\IncidentServiceTest.class

@@ -214,8 +214,18 @@ public class IncidentService {
         throw new ResponseStatusException(HttpStatus.CONFLICT, "Invalid status transition");
     }
 
-    private String generateIncidentNumber() {
-        long count = incidentRepository.count();
-        return String.format("CPLY%04d", count + 1);
+private String generateIncidentNumber() {
+
+    Optional<Incident> latestIncident = incidentRepository.findTopByOrderByIdDesc();
+
+    if (latestIncident.isEmpty()) {
+        return "CPLY0001";
     }
+
+    String lastIncidentNumber = latestIncident.get().getIncidentNumber();
+
+    int nextNumber = Integer.parseInt(lastIncidentNumber.replace("CPLY", "")) + 1;
+
+    return String.format("CPLY%04d", nextNumber);
+}
 }

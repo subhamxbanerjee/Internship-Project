@@ -1,6 +1,7 @@
 package com.centuryply.portal.security;
 
-import com.centuryply.portal.entity.Role;
+import java.util.List;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -18,7 +19,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import java.util.List;
+import com.centuryply.portal.entity.Role;
 
 @Configuration
 @EnableWebSecurity
@@ -79,11 +80,18 @@ public class PortalSecurityConfig {
                         // Allow browser preflight requests
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                        // Public APIs - must come first
-                        .requestMatchers("/api/auth/login").permitAll()
-                        .requestMatchers("/api/auth/register").hasAnyAuthority(Role.SUPER_ADMIN.name(), Role.ADMIN.name())
-                        .requestMatchers("/").permitAll()
+                        // React frontend
+.requestMatchers(
+        "/",
+        "/index.html",
+        "/favicon.ico",
+        "/assets/**"
+).permitAll()
 
+// Public APIs
+.requestMatchers("/api/auth/login").permitAll()
+.requestMatchers("/api/auth/register")
+.hasAnyAuthority(Role.SUPER_ADMIN.name(), Role.ADMIN.name())
                         // Upload
                         .requestMatchers(HttpMethod.POST, "/api/documents/upload")
                         .hasAnyAuthority(Role.SUPER_ADMIN.name(), Role.ADMIN.name())
@@ -139,12 +147,7 @@ public class PortalSecurityConfig {
                         .anyRequest().authenticated()
                 )
 
-                .httpBasic(httpBasic -> httpBasic
-                    .authenticationEntryPoint((request, response, authException) -> {
-                        response.setStatus(401);
-                        response.setHeader("WWW-Authenticate", "Basic realm=\"CenturyPly Portal\"");
-                    })
-                )
+                .httpBasic(httpBasic -> httpBasic.disable())
 
                 .headers(headers ->
                         headers.frameOptions(frame -> frame.disable())

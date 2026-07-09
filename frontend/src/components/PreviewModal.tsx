@@ -18,7 +18,7 @@ interface PreviewModalProps {
 }
 
 const API_BASE =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api";
+  import.meta.env.VITE_API_BASE_URL || "/api";
 
 const OFFICE_TYPES = ["docx"];
 const SHEET_TYPES = ["xlsx", "xls", "csv"];

@@ -1,0 +1,5 @@
+# Created at 2026-07-09T12:06:03.662
+Boot Manifest-JAR contains absolute paths in classpath 'D:\CENT-PLY\backend\target\test-classes'
+Hint: <argLine>-Djdk.net.URLClassPath.disableClassPathURLCheck=true</argLine>
+'other' has different root
+

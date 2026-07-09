@@ -1,6 +1,6 @@
 import axios, { AxiosInstance, isAxiosError } from 'axios';
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api';
+const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api';
 const STORAGE_KEY = 'centuryply_auth';
 
 export let apiClient: AxiosInstance = createApiClient();
@@ -24,7 +24,10 @@ function createApiClient(username?: string, password?: string): AxiosInstance {
 
   return client;
 }
-
+interface StoredAuth {
+  username: string;
+  password: string;
+}
 export function setUnauthorizedHandler(handler: () => void) {
   onUnauthorized = handler;
 }
@@ -63,12 +66,34 @@ export interface PortalUser {
   active: boolean;
 }
 
+
 export function setAuthCredentials(username: string, password: string) {
+  sessionStorage.setItem(
+    STORAGE_KEY,
+    JSON.stringify({ username, password })
+  );
+
   apiClient = createApiClient(username, password);
 }
 
 export function clearAuthCredentials() {
+  sessionStorage.removeItem(STORAGE_KEY);
   apiClient = createApiClient();
+}
+export function restoreAuthCredentials() {
+  const stored = sessionStorage.getItem(STORAGE_KEY);
+
+  if (!stored) return;
+
+  try {
+    const { username, password } = JSON.parse(stored);
+
+    if (username && password) {
+      apiClient = createApiClient(username, password);
+    }
+  } catch {
+    sessionStorage.removeItem(STORAGE_KEY);
+  }
 }
 
 export function updateStoredUser(user: AuthUser) {

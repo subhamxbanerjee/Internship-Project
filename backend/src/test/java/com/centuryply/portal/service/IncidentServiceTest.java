@@ -33,21 +33,32 @@ class IncidentServiceTest {
     @InjectMocks
     private IncidentService incidentService;
 
-    @Test
-    void createIncidentShouldAttachCreatedByUser() {
-        User creator = new User("superadmin", "password", "Super Admin", "admin@centuryply.com", Role.SUPER_ADMIN);
-        creator.setId(1L);
+   @Test
+void createIncidentShouldAttachCreatedByUser() {
+    User creator = new User("superadmin", "password", "Super Admin", "admin@centuryply.com", Role.SUPER_ADMIN);
+    creator.setId(1L);
 
-        when(userRepository.findByUsername("superadmin")).thenReturn(Optional.of(creator));
-        when(incidentRepository.count()).thenReturn(0L);
-        when(incidentRepository.save(any(Incident.class))).thenAnswer(invocation -> invocation.getArgument(0));
+    when(userRepository.findByUsername("superadmin"))
+            .thenReturn(Optional.of(creator));
 
-        Incident incident = incidentService.createIncident("Login failure", "Users unable to login", Department.IT, Priority.HIGH, "superadmin");
+    when(incidentRepository.findTopByOrderByIdDesc())
+            .thenReturn(Optional.empty());
 
-        assertThat(incident.getCreatedByUser()).isNotNull();
-        assertThat(incident.getCreatedByUser().getUsername()).isEqualTo("superadmin");
-        assertThat(incident.getIncidentNumber()).isEqualTo("CPLY0001");
-    }
+    when(incidentRepository.save(any(Incident.class)))
+            .thenAnswer(invocation -> invocation.getArgument(0));
+
+    Incident incident = incidentService.createIncident(
+            "Login failure",
+            "Users unable to login",
+            Department.IT,
+            Priority.HIGH,
+            "superadmin"
+    );
+
+    assertThat(incident.getCreatedByUser()).isNotNull();
+    assertThat(incident.getCreatedByUser().getUsername()).isEqualTo("superadmin");
+    assertThat(incident.getIncidentNumber()).isEqualTo("CPLY0001");
+}
 
     @Test
     void employeeShouldOnlySeeAssignedIncidents() {
