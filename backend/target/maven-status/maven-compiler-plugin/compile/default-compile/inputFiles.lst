@@ -23,6 +23,7 @@ D:\CENT-PLY\backend\src\main\java\com\centuryply\portal\exception\ApiErrorRespon
 D:\CENT-PLY\backend\src\main\java\com\centuryply\portal\service\UserService.java
 D:\CENT-PLY\backend\src\main\java\com\centuryply\portal\controller\AuthController.java
 D:\CENT-PLY\backend\src\main\java\com\centuryply\portal\dto\CommentRequest.java
+D:\CENT-PLY\backend\src\main\java\com\centuryply\portal\controller\DashboardController.java
 D:\CENT-PLY\backend\src\main\java\com\centuryply\portal\security\PortalUserDetailsService.java
 D:\CENT-PLY\backend\src\main\java\com\centuryply\portal\entity\Department.java
 D:\CENT-PLY\backend\src\main\java\com\centuryply\portal\entity\Incident.java

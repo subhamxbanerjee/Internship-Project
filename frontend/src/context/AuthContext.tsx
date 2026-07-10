@@ -92,24 +92,3 @@ export function useAuth() {
 
   return context;
 }
-useEffect(() => {
-  console.log("1. Restoring credentials...");
-  restoreAuthCredentials();
-
-  async function restoreSession() {
-    try {
-      console.log("2. Calling /auth/me...");
-      const authUser = await fetchCurrentUser();
-      console.log("3. User restored:", authUser);
-      setUser(authUser);
-    } catch (e) {
-      console.log("4. Failed to restore session:", e);
-      setUser(null);
-    } finally {
-      console.log("5. Loading finished");
-      setLoading(false);
-    }
-  }
-
-  restoreSession();
-}, []);

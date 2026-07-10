@@ -128,6 +128,21 @@ export async function fetchRecentDocuments(): Promise<DocumentItem[]> {
   const response = await apiClient.get('/documents/recent');
   return response.data;
 }
+export interface DashboardStatus {
+  exists: boolean;
+  version: number;
+  lastUpdated: number;
+  size: number;
+}
+
+export async function fetchDashboardStatus(): Promise<DashboardStatus> {
+  const response = await apiClient.get('/dashboard/status');
+  return response.data;
+}
+
+export function getDashboardPdfUrl(version: number): string {
+  return `${API_BASE}/dashboard/pdf?v=${version}`;
+}
 
 export async function uploadDocument(file: File): Promise<DocumentItem> {
   const formData = new FormData();

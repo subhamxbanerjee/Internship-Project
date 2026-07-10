@@ -1,4 +1,4 @@
 -------------------------------------------------------------------------------
 Test set: com.centuryply.portal.controller.AuthControllerSecurityTest
 -------------------------------------------------------------------------------
-Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 3.786 s -- in com.centuryply.portal.controller.AuthControllerSecurityTest
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 3.686 s -- in com.centuryply.portal.controller.AuthControllerSecurityTest

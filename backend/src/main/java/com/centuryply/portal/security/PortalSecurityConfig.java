@@ -151,7 +151,13 @@ public class PortalSecurityConfig {
                         // Incident Management - View (All authenticated users, but service filters employee access)
                         .requestMatchers(HttpMethod.GET, "/api/incidents/**")
                         .hasAnyAuthority(Role.EMPLOYEE.name(), Role.ADMIN.name(), Role.SUPER_ADMIN.name())
-
+// Dashboard - All authenticated users
+.requestMatchers(HttpMethod.GET, "/api/dashboard/**")
+.hasAnyAuthority(
+        Role.EMPLOYEE.name(),
+        Role.ADMIN.name(),
+        Role.SUPER_ADMIN.name()
+)
                         // View / Preview / Download Documents
                         .requestMatchers("/api/documents/**")
                         .authenticated()

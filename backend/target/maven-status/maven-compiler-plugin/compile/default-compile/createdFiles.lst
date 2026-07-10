@@ -27,6 +27,7 @@ com\centuryply\portal\service\UserService.class
 com\centuryply\portal\entity\User.class
 com\centuryply\portal\controller\AuthController.class
 com\centuryply\portal\controller\UserController$UpdateUserRequest.class
+com\centuryply\portal\controller\DashboardController.class
 com\centuryply\portal\repository\IncidentRepository.class
 com\centuryply\portal\config\WebConfig.class
 com\centuryply\portal\controller\UserController.class
