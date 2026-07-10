@@ -6,16 +6,18 @@ import org.springframework.web.bind.annotation.GetMapping;
 @Controller
 public class SpaForwardController {
 
-    @GetMapping({
-            "/",
-            "/login",
-            "/dashboard",
-            "/documents",
-            "/users",
-            "/incidents",
-            "/settings"
-    })
-    public String forward() {
-        return "forward:/index.html";
-    }
+   @GetMapping({
+        "/",
+        "/login",
+        "/dashboard",
+        "/documents",
+        "/upload",
+        "/users",
+        "/incidents",
+        "/incidents/report",
+        "/settings"
+})
+public String forward() {
+    return "forward:/index.html";
+}
 }

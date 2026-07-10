@@ -11,6 +11,7 @@ import org.springframework.security.authentication.dao.DaoAuthenticationProvider
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -20,6 +21,8 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.centuryply.portal.entity.Role;
+
+import jakarta.servlet.http.HttpServletResponse;
 
 @Configuration
 @EnableWebSecurity
@@ -75,23 +78,36 @@ public class PortalSecurityConfig {
                     .requireExplicitSave(false)
                 )
 
+                .sessionManagement(session -> session
+                    .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                )
+
                 .authorizeHttpRequests(auth -> auth
 
                         // Allow browser preflight requests
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
                         // React frontend
-.requestMatchers(
-        "/",
-        "/index.html",
-        "/favicon.ico",
-        "/assets/**"
+                       .requestMatchers(
+    "/",
+    "/index.html",
+    "/favicon.ico",
+    "/assets/**",
+    "/login",
+    "/dashboard",
+    "/documents",
+    "/upload",
+    "/users",
+    "/incidents",
+    "/incidents/report",
+    "/settings"
 ).permitAll()
 
-// Public APIs
-.requestMatchers("/api/auth/login").permitAll()
-.requestMatchers("/api/auth/register")
-.hasAnyAuthority(Role.SUPER_ADMIN.name(), Role.ADMIN.name())
+                        // Public APIs
+                        .requestMatchers("/api/auth/login").permitAll()
+                        .requestMatchers("/api/auth/register")
+                        .hasAnyAuthority(Role.SUPER_ADMIN.name(), Role.ADMIN.name())
+                        
                         // Upload
                         .requestMatchers(HttpMethod.POST, "/api/documents/upload")
                         .hasAnyAuthority(Role.SUPER_ADMIN.name(), Role.ADMIN.name())
@@ -147,7 +163,13 @@ public class PortalSecurityConfig {
                         .anyRequest().authenticated()
                 )
 
-                .httpBasic(httpBasic -> httpBasic.disable())
+                .httpBasic(httpBasic -> httpBasic.authenticationEntryPoint(
+                    (request, response, authException) -> {
+                        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                        response.setContentType("application/json");
+                        response.getWriter().write("{\"message\":\"Unauthorized\"}");
+                    }
+                ))
 
                 .headers(headers ->
                         headers.frameOptions(frame -> frame.disable())
