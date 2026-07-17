@@ -67,6 +67,8 @@ CENT-PLY/
 └── designs/          # Design mockups and screenshots
 ```
 
+<img width="1918" height="917" alt="image" src="https://github.com/user-attachments/assets/041a7aae-84cc-49f1-9a5d-de4a9a1bedd5" />
+
 ## Features
 
 - Secure login with role-based access (Employee, Admin, Super Admin)
