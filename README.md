@@ -1,34 +1,34 @@
-<p align="center">
-  <img src="frontend/src/assets/logo-new.png" alt="CenturyPly Logo" width="220"/>
-</p>
+<div align="center">
 
-# CenturyPly Internal Document Portal
+<img src="./logo-new.png" alt="CenturyPly Logo" width="160"/>
 
-An internal document management portal for CenturyPly, built for uploading, organizing, and accessing company documents with role-based access control.
+# CenturyPly Internal Portal
 
-<p align="center">
+An internal document and incident management portal built for CenturyPly's Guwahati branch. Handles document storage, incident/ticket tracking, and role-based access, all running on a single internal LAN server.
 
-![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=black&style=for-the-badge)
-![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white&style=for-the-badge)
-![Vite](https://img.shields.io/badge/Vite-5-646CFF?logo=vite&logoColor=white&style=for-the-badge)
-![TailwindCSS](https://img.shields.io/badge/TailwindCSS-3-06B6D4?logo=tailwindcss&logoColor=white&style=for-the-badge)
-![React Router](https://img.shields.io/badge/React_Router-6-CA4245?logo=reactrouter&logoColor=white&style=for-the-badge)
-![Java](https://img.shields.io/badge/Java-17-007396?logo=openjdk&logoColor=white&style=for-the-badge)
-![Spring Boot](https://img.shields.io/badge/Spring_Boot-3-6DB33F?logo=springboot&logoColor=white&style=for-the-badge)
-![Spring Security](https://img.shields.io/badge/Spring_Security-6DB33F?logo=springsecurity&logoColor=white&style=for-the-badge)
-![MySQL](https://img.shields.io/badge/MySQL-8-4479A1?logo=mysql&logoColor=white&style=for-the-badge)
-![Maven](https://img.shields.io/badge/Maven-C71A36?logo=apachemaven&logoColor=white&style=for-the-badge)
-![Git](https://img.shields.io/badge/Git-F05032?logo=git&logoColor=white&style=for-the-badge)
+![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=black)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-Build_Tool-646CFF?logo=vite&logoColor=white)
+![TailwindCSS](https://img.shields.io/badge/TailwindCSS-Styling-38B2AC?logo=tailwindcss&logoColor=white)
+![Java](https://img.shields.io/badge/Java-17-007396?logo=openjdk&logoColor=white)
+![Spring Boot](https://img.shields.io/badge/Spring_Boot-3-6DB33F?logo=springboot&logoColor=white)
+![MySQL](https://img.shields.io/badge/MySQL-Database-4479A1?logo=mysql&logoColor=white)
+![Maven](https://img.shields.io/badge/Maven-Build-C71A36?logo=apachemaven&logoColor=white)
+![Deployment](https://img.shields.io/badge/Deployed_via-NSSM-0078D6?logo=windows&logoColor=white)
+![License](https://img.shields.io/badge/status-internal_project-lightgrey)
 
-</p>
+</div>
+
+---
 
 ## Table of Contents
 
 - [Tech Stack](#tech-stack)
 - [Project Structure](#project-structure)
 - [Features](#features)
-- [Backend Setup](#backend-setup)
-- [Frontend Setup](#frontend-setup)
+- [Deployment](#deployment)
+- [Backend Setup (Local Dev)](#backend-setup-local-dev)
+- [Frontend Setup (Local Dev)](#frontend-setup-local-dev)
 - [API Endpoints](#api-endpoints)
 - [Sample Users](#sample-users)
 - [Roadmap](#roadmap)
@@ -37,122 +37,127 @@ An internal document management portal for CenturyPly, built for uploading, orga
 ## Tech Stack
 
 **Frontend**
-- ⚛️ React 18 + TypeScript
-- ⚡ Vite — dev server & build tool
-- 🧭 React Router — client-side routing
-- 🎨 Tailwind CSS — utility-first styling
+- React 18 + TypeScript
+- Vite
+- Tailwind CSS
+- React Router
 
 **Backend**
-- ☕ Java 17
-- 🍃 Spring Boot 3 — REST API framework
-- 🔒 Spring Security — authentication & role-based authorization
-- 🐬 MySQL — relational database
-- 📦 Maven — dependency management & build
+- Java 17
+- Spring Boot 3
+- Spring Security (role-based auth)
+- MySQL
+- Maven
 
 ## Project Structure
 
 ```
 CENT-PLY/
-├── backend/          # Spring Boot backend application
-├── frontend/         # React + TypeScript frontend application
-│   ├── public/        # Static assets served as-is (favicon, etc.)
+├── backend/          # Spring Boot backend
+├── frontend/         # React + TypeScript frontend
+│   ├── public/
 │   └── src/
-│       ├── assets/     # Images, logos
-│       ├── components/ # Reusable UI components
-│       ├── context/    # Auth context/provider
-│       ├── hooks/       # Custom React hooks
-│       ├── layouts/     # Page layout wrappers
-│       ├── pages/        # Route-level pages
-│       └── services/     # API service calls
+│       ├── assets/
+│       ├── components/
+│       ├── context/
+│       ├── hooks/
+│       ├── layouts/
+│       ├── pages/
+│       └── services/
 └── designs/          # Design mockups and screenshots
 ```
 
 ## Features
 
-- 🔐 Secure login with role-based access (Employee, Admin, Super Admin)
-- 📊 Dashboard with document overview
-- 📁 Document listing and browsing
-- ⬆️ Document upload
-- 👥 User management (Super Admin only)
-- ⚙️ Settings page
-- 🛡️ Protected routes with auth guards
+- Secure login with role-based access (Employee, Admin, Super Admin)
+- Real-time dashboard with live PDF preview, auto-syncing every 10 seconds
+- Document listing, upload, download, and delete (role-restricted)
+- Incident and ticket management module
+- User management (Super Admin only)
+- Settings page
+- Protected routes with auth guards
 
-## Backend Setup
+## Deployment
 
-1. Install Java 17 and MySQL.
-2. Create a MySQL database named `centuryply`.
-3. Update `backend/src/main/resources/application.properties` if MySQL credentials differ.
+This portal runs as a Windows Service on an internal LAN server, deployed at a static IP so it's reachable by everyone on the network without needing to start anything manually.
+
+- Backend packaged as a single executable JAR (no Docker, no Nginx, no microservices — kept simple for a LAN setup)
+- Deployed as a Windows Service using **NSSM** (Non-Sucking Service Manager), so it auto-starts with the machine and keeps running in the background
+- Service logs output for monitoring and debugging
+- Reachable on the LAN at the server's static IP
+
+## Backend Setup (Local Dev)
+
+1. Install Java 17 and MySQL
+2. Create a MySQL database named `centuryply`
+3. Update `backend/src/main/resources/application.properties` if your MySQL credentials differ
 4. Run:
-   ```bash
+   ```
    cd backend
    mvn clean install
    mvn spring-boot:run
    ```
+5. Backend runs on `http://localhost:8080`
 
-The backend runs on `http://localhost:8080`.
+## Frontend Setup (Local Dev)
 
-## Frontend Setup
-
-1. Install Node.js 20+.
+1. Install Node.js 20+
 2. Run:
-   ```bash
+   ```
    cd frontend
    npm install
    npm run dev
    ```
-
-The frontend runs on `http://localhost:5173`.
+3. Frontend runs on `http://localhost:5173`
 
 ## API Endpoints
 
 ### Auth
 | Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/auth/login` | Login with username and password |
-| POST | `/api/auth/register` | Create a new employee account |
+|---|---|---|
+| POST | /api/auth/login | Login with username and password |
+| POST | /api/auth/register | Create a new employee account |
 
 ### Documents
 | Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/documents` | List all documents |
-| GET | `/api/documents/recent` | List recent documents |
-| GET | `/api/documents/summary` | Get document counts |
-| POST | `/api/documents/upload` | Upload a document file |
-| GET | `/api/documents/download/{id}` | Download a document |
+|---|---|---|
+| GET | /api/documents | List all documents |
+| GET | /api/documents/recent | List recent documents |
+| GET | /api/documents/summary | Get document counts |
+| POST | /api/documents/upload | Upload a document file |
+| GET | /api/documents/download/{id} | Download a document |
 
 ### Users (Super Admin only)
 | Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/users` | List users |
-| POST | `/api/users` | Add user |
-| PUT | `/api/users/{id}` | Update user |
-| DELETE | `/api/users/{id}` | Delete user |
-| POST | `/api/users/{id}/reset-password` | Reset password |
+|---|---|---|
+| GET | /api/users | List users |
+| POST | /api/users | Add user |
+| PUT | /api/users/{id} | Update user |
+| DELETE | /api/users/{id} | Delete user |
+| POST | /api/users/{id}/reset-password | Reset password |
 
 ## Sample Users
 
-superadmin
-admin
-employee
+`superadmin`, `admin`, `employee`
 
 ## Roadmap
 
-### ✅ Completed
-- [x] Backend setup with Spring Boot + MySQL
-- [x] Authentication (login) with role-based access
-- [x] Role-based route protection (Employee / Admin / Super Admin)
-- [x] Dashboard page
-- [x] Documents listing page
-- [x] Document upload functionality
-- [x] Document download functionality
-- [x] User management (Super Admin only)
-- [x] Settings page
-- [x] Custom favicon added
+**Completed**
+- Backend setup with Spring Boot + MySQL
+- Authentication with role-based access
+- Role-based route protection
+- Real-time dashboard with live sync
+- Document listing, upload, download, delete
+- Incident and ticket management
+- User management (Super Admin only)
+- Settings page
+- Deployed to LAN server via NSSM (Windows Service, static IP)
 
-### 🚧 Planned / Upcoming
-- ticket and incident management portal
+**Planned**
+- Further polish on incident/ticket workflows
+- Additional file preview formats
 
 ## Notes
 
-- Uploaded files are stored in `backend/uploads/`.
-- This version is a beginner-friendly internship project and is under active development.
+- Uploaded files are stored in `backend/uploads/`
+- This is a beginner-friendly internship project, built and deployed incrementally over the course of the internship
